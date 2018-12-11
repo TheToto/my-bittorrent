@@ -12,9 +12,20 @@
 
 static char *concat_path (json_t *j_path, const char *name)
 {
-    j_path = j_path;
     char *res = calloc(strlen(name) + 1, sizeof(char));
-    strcat(res, name);
+    strcpy(res, name);
+
+    size_t i;
+    json_t *val;
+    json_array_foreach(j_path, i, val)
+    {
+        if (!val || !json_is_string(val))
+            return res;
+        const char *tmp = json_string_value(val);
+        res = realloc(res, strlen(res) + strlen(tmp) + 2);
+        strcat(res, "/");
+        strcat(res, tmp);
+    }
     return res;
 }
 
