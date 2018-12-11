@@ -5,6 +5,30 @@
 #include "bencode.h"
 #include "parser.h"
 
+static char *fix_string(char *str, size_t size)
+{
+    char *buf = calloc(size * 6 + 1, sizeof(char));
+    size_t j = 0;
+    for (size_t i = 0; i < size; i++, j++)
+    {
+        if (str[i] < 0x20 || str[i] > 0x7E)
+        {
+            char tmp[10] =
+            {
+                0
+            };
+            sprintf(tmp, "U+00%02hhX", str[i]);
+            strcat(buf, tmp);
+            j += strlen(tmp) - 1;
+        }
+        else
+        {
+            buf[j] = str[i];
+        }
+    }
+    return buf;
+}
+
 static json_t *parse_node(struct be_node *be);
 
 static json_t *parse_list(struct be_node **list)
@@ -20,8 +44,7 @@ static json_t *parse_list(struct be_node **list)
 
 static json_t *parse_str(struct be_string *str)
 {
-    char *buf = calloc(str->length + 1, sizeof(char));
-    strncpy(buf, str->content, str->length);
+    char *buf = fix_string(str->content, str->length);
     json_t *ret = json_string(buf);
     free(buf);
     return ret;
