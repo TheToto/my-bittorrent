@@ -13,6 +13,7 @@ struct metainfo
 };
 
 struct metainfo *decode_torrent(char *path, int print);
+struct metainfo *create_meta(json_t *json);
 void *free_metainfo(struct metainfo *meta);
 
 json_t *to_json(struct be_node *be);
