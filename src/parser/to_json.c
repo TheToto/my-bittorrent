@@ -84,11 +84,13 @@ static json_t *parse_node(struct be_node *be)
     return NULL;
 }
 
-void print_json(struct be_node *be)
+void free_json(json_t *json)
+{
+    json_decref(json);
+}
+
+json_t *to_json(struct be_node *be)
 {
     json_t *json = parse_node(be);
-    char *s = json_dumps(json, 0);
-    puts(s);
-    free(s);
-    json_decref(json);
+    return json;
 }
