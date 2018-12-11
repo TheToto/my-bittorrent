@@ -10,6 +10,32 @@
 #include "bencode.h"
 #include "parser.h"
 
+static char *unfix_string(const char *str)
+{
+    char *ret = calloc(strlen(str), sizeof(char));
+    size_t j = 0;
+    for (size_t i = 0; str[i]; i++, j++)
+    {
+        if (str[i] == 'U' && str[i + 1] == '+' && str[i + 2] == '0'
+                && str[i + 3] == '0' && str[i + 4] && str[i + 5])
+        {
+            char tmp[3] =
+            {
+                str[i + 4], str[i + 5], '\0'
+            };
+            unsigned char hex;
+            sscanf(tmp, "%02hhX", &hex);
+            ret[j] = hex;
+            i += 5;
+        }
+        else
+        {
+            ret[j] = str[i];
+        }
+    }
+    return ret;
+}
+
 static char *concat_path (json_t *j_path, const char *name)
 {
     char *res = calloc(strlen(name) + 1, sizeof(char));
@@ -101,7 +127,7 @@ struct metainfo *create_meta(json_t *json)
     json_t *j_pieces = json_object_get(j_info, "pieces");
     if (!j_pieces || !json_is_string(j_pieces))
         return free_metainfo(meta);
-    meta->pieces = strdup(json_string_value(j_pieces));
+    meta->pieces = unfix_string(json_string_value(j_pieces));
 
     json_t *j_size = json_object_get(j_info, "piece length");
     if (!j_size || !json_is_integer(j_size))
