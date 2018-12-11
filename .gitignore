@@ -1,0 +1,6 @@
+/lib
+/build
+/include/
+/torrents
+a.out
+*.o
