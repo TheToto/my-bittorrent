@@ -10,10 +10,42 @@
 #include "bencode.h"
 #include "parser.h"
 
+static char *concat_path (json_t *j_path, const char *name)
+{
+    j_path = j_path;
+    char *res = calloc(strlen(name) + 1, sizeof(char));
+    strcat(res, name);
+    return res;
+}
+
+static struct metainfo *fill_multiple_files(struct metainfo *meta,
+        json_t *j_files, const char *name)
+{
+    size_t nb_files = json_array_size(j_files);
+    meta->files = calloc(nb_files + 1, sizeof(char*));
+    meta->files_size = calloc(nb_files + 1, sizeof(size_t));
+
+    size_t i;
+    json_t *cur;
+    json_array_foreach(j_files, i, cur)
+    {
+        json_t *j_path = json_object_get(cur, "path");
+        if (!j_path || !json_is_array(j_path))
+            return free_metainfo(meta);
+        meta->files[i] = concat_path(j_path, name);
+
+        json_t *j_size = json_object_get(cur, "length");
+        if (!j_size || !json_is_integer(j_size))
+            return free_metainfo(meta);
+        meta->files_size[i] = json_integer_value(j_size);
+    }
+    return meta;
+}
+
 static struct metainfo *fill_files(struct metainfo *meta, json_t *j_info)
 {
     json_t *j_files = json_object_get(j_info, "files");
-    if (!j_files || !json_is_string(j_files))
+    if (!j_files || !json_is_array(j_files))
     {
         // Unique file
         json_t *j_name = json_object_get(j_info, "name");
@@ -31,6 +63,14 @@ static struct metainfo *fill_files(struct metainfo *meta, json_t *j_info)
         return meta;
     }
     // Handle multiple files
+    if (j_files && json_is_array(j_files))
+    {
+        json_t *j_name = json_object_get(j_info, "name");
+        if (!j_name || !json_is_string(j_name))
+            return free_metainfo(meta);
+
+        return fill_multiple_files(meta, j_files, json_string_value(j_name));
+    }
     return free_metainfo(meta);
 }
 
