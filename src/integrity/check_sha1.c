@@ -10,9 +10,15 @@
 
 static void unfix_string(struct metainfo *meta, unsigned char *sha1, size_t nb)
 {
-    char *str = meta->pieces + nb * 20;
+    char *str = meta->pieces;
     size_t i = 0;
-    for (size_t j = 0; j < 20; i++, j++)
+    for (size_t k = 0; k < nb * 20; k++, i++) // Go to nb picece hash
+    {
+        if (str[i] == 'U' && str[i + 1] == '+' && str[i + 2] == '0'
+                && str[i + 3] == '0' && str[i + 4] && str[i + 5])
+            i += 5;
+    }
+    for (size_t j = 0; j < 20; i++, j++) // Get nb piece hash
     {
         if (str[i] == 'U' && str[i + 1] == '+' && str[i + 2] == '0'
                 && str[i + 3] == '0' && str[i + 4] && str[i + 5])
@@ -47,7 +53,7 @@ static int check_piece(struct metainfo *meta, size_t nb)
 {
     size_t start = nb * meta->piece_size;
     unsigned char sha1[20];
-    unfix_string(meta, sha1, nb);
+    unfix_string(meta, sha1, nb); // Get piece nb hash
     size_t ptr = 0;
     size_t i = 0;
     for (size_t cur = 0; meta->files[i]; i++) // Get position of piece in files
@@ -79,9 +85,9 @@ static int check_piece(struct metainfo *meta, size_t nb)
         }
     }
     unsigned char hash[20];
-    SHA1(piece, k, hash);
+    SHA1(piece, k, hash); // Compute piece hash
     free(piece);
-    return memcmp(hash, sha1, 20) == 0;
+    return memcmp(hash, sha1, 20) == 0; // Compare hashs
 }
 
 int check_integrity(struct metainfo *meta)

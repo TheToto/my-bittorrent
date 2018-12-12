@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <err.h>
 
 #include "parser.h"
 #include "integrity.h"
@@ -12,7 +13,15 @@ int main(int argc, char **argv)
         return 1;
     }
     struct metainfo *meta = decode_torrent(argv[1], 1);
-    int ret = check_integrity(meta);
+    int ret = 1;
+    if (meta)
+        ret = check_integrity(meta);
+    else
+        warnx("Failed to decode .torrent file");
     free_metainfo(meta);
-    return ret;
+    if (ret)
+        printf("Integrity check : SUCCESS\n");
+    else
+        printf("Integrity check : FAILED\n");
+    return ret == 0;
 }
