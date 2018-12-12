@@ -39,7 +39,7 @@ static void unfix_string(struct metainfo *meta, unsigned char *sha1, size_t nb)
     }
 }
 
-static size_t get_total_size(struct metainfo *meta)
+size_t get_total_size(struct metainfo *meta)
 {
     size_t acu = 0;
     for (size_t i = 0; meta->files[i]; i++)
@@ -49,7 +49,7 @@ static size_t get_total_size(struct metainfo *meta)
     return acu;
 }
 
-static int check_piece(struct metainfo *meta, size_t nb)
+int check_piece(struct metainfo *meta, size_t nb)
 {
     size_t start = nb * meta->piece_size;
     unsigned char sha1[20];
