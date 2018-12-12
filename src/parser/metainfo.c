@@ -23,8 +23,8 @@ static char *unfix_string(const char *str)
             {
                 str[i + 4], str[i + 5], '\0'
             };
-            unsigned char hex;
-            sscanf(tmp, "%02hhX", &hex);
+            unsigned int hex;
+            sscanf(tmp, "%02X", &hex);
             ret[j] = hex;
             i += 5;
         }
@@ -117,8 +117,9 @@ struct metainfo *create_meta(json_t *json)
 
     json_t *j_an = json_object_get(json, "announce");
     if (!j_an || !json_is_string(j_an))
-        return free_metainfo(meta);
-    meta->announce = strdup(json_string_value(j_an));
+        warnx("No announce url");
+    else
+        meta->announce = strdup(json_string_value(j_an));
 
     json_t *j_info = json_object_get(json, "info");
     if (!j_info || !json_is_object(j_info))

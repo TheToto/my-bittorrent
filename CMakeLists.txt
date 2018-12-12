@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project (my-bittorrent)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -std=c99 -pedantic -fsanitize=address")
-set(CMAKE_C_STANDARD_LIBRARIES "-lcurl -ljansson -lssl")
+set(CMAKE_C_STANDARD_LIBRARIES "-lcurl -ljansson -lcrypto -lssl")
 include_directories(src/include)
 include_directories(include/bencode)
 file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.c")
