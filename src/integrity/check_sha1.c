@@ -38,7 +38,7 @@ static int check_piece(struct metainfo *meta, size_t nb)
         if (start == cur)
             break;
     }
-    unsigned char *piece = calloc(meta->piece_size + 1, sizeof(char));
+    unsigned char *piece = calloc(meta->piece_size + 1, sizeof(unsigned char));
     for (size_t k = 0; k < meta->piece_size; k++) // Get piece content
     {
         for (; k < meta->piece_size && meta->files[i]; i++)

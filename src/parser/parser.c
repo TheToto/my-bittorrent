@@ -45,7 +45,7 @@ struct metainfo *decode_torrent(char *path, int print)
     be_free(be);
     if (print)
     {
-        char *s = json_dumps(json, 0);
+        char *s = json_dumps(json, 4);
         puts(s);
         free(s);
     }
