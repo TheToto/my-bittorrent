@@ -12,8 +12,11 @@ int check_piece(struct metainfo *meta, size_t nb);
 int check_piece_string(struct metainfo *meta, size_t nb,
         unsigned char *piece, size_t piece_size);
 
-/// Get the total size of a torrent in bytes
+/// Get the total size of a torrent in bytes (from metainfo)
 size_t get_total_size(struct metainfo *meta);
+
+/// Get the REAL size of a file (different from stat.st_size)
+size_t get_size_file(char *path);
 
 /// Get piece "nb" and put in buf "piece", return number of bytes read
 size_t get_piece(struct metainfo *meta, unsigned char *piece, size_t nb);

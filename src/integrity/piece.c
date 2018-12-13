@@ -87,7 +87,7 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
     }
 }
 
-static size_t get_size_file(char *path)
+size_t get_size_file(char *path)
 {
     FILE *f = fopen(path, "rb");
     if (f == NULL)
