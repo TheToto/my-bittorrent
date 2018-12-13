@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <dirent.h>
 
 #include "bencode.h"
 #include "integrity.h"
@@ -57,10 +58,52 @@ static struct be_node *create_dict(struct be_dict **dict)
     ret->element.dict = dict;
     return ret;
 }
-static struct be_node *fill_info_multiple(char *path)
+
+static struct be_node *path_to_list(char *path)
 {
     path = path;
     return NULL;
+}
+
+static struct be_node **add_dir(struct be_node **list, size_t *size,
+        size_t *capacity, char *path)
+{
+    DIR *dir = opendir(path);
+    struct dirent *dp;
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+            continue;
+        char *new_path = calloc(strlen(path) + 257, sizeof(char));
+        strcat(new_path, path);
+        strcat(new_path, "/");
+        strcat(new_path, dp->d_name);
+        struct stat s;
+        stat(new_path, &s);
+        if (S_ISDIR(s.st_mode))
+        {
+            list = add_dir(list, size, capacity, new_path);
+        }
+        else
+        {
+            if (*capacity - 1 == *size)
+            {
+                *capacity *= 2;
+                list = realloc(list, *capacity * sizeof(struct be_node*));
+            }
+            struct be_dict **file = malloc(sizeof(struct be_dict) * 3);
+            struct be_node *length = create_int(get_size_file(new_path));
+            struct be_node *path = path_to_list(new_path);
+            file[0] = create_dict_item("length", length);
+            file[1] = create_dict_item("path", path);
+            file[2] = NULL;
+            list[*size] = create_dict(file);
+            (*size)++;
+        }
+        free(new_path);
+    }
+    closedir(dir);
+    return list;
 }
 
 static struct be_node *create_info(char *path)
@@ -70,13 +113,19 @@ static struct be_node *create_info(char *path)
     struct be_dict **info = malloc(sizeof(struct be_dict*) * 5);
     info[0] = create_dict_item("piece length", piece_len);
     info[1] = create_dict_item("pieces", pieces);
+    info[2] = NULL;
     info[3] = NULL;
     info[4] = NULL;
     struct stat s;
     stat(path, &s);
     if (S_ISDIR(s.st_mode))
     {
-        info[2] = create_dict_item("files", fill_info_multiple(path));
+        size_t capacity = 8;
+        size_t size = 0;
+        struct be_node **list = malloc(capacity * sizeof(struct be_node*));
+        list = add_dir(list, &size, &capacity, path);
+        list[size] = NULL;
+        info[2] = create_dict_item("files", create_list(list));
     }
     else
     {
@@ -113,6 +162,8 @@ void mktorrent(char *path)
     size_t size;
     char *enc = be_encode(root, &size);
     be_free(root);
+    if (!enc)
+        return;
 
     char *torrent_path = calloc(strlen(path) + 20, 1);
     strcat(torrent_path, path);
