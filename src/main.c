@@ -12,6 +12,8 @@ int main(int argc, char **argv)
                 "my-bittorrent: Usage: %s [options] [files]\n", argv[0]);
         return 1;
     }
+    //mktorrent(argv[1]);
+    
     struct metainfo *meta = decode_torrent(argv[1], 1);
     int ret = 1;
     if (meta)
@@ -28,6 +30,6 @@ int main(int argc, char **argv)
     {
         warnx("Failed to decode .torrent file");
     }
-
     return ret == 0;
+    
 }

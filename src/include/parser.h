@@ -27,3 +27,5 @@ json_t *to_json(struct be_node *be);
 
 /// Free json
 void free_json(json_t *json);
+
+void mktorrent(char *path);
