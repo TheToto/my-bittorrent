@@ -85,11 +85,28 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
     }
 }
 
+static size_t get_size_file(char *path)
+{
+    FILE *f = fopen(path, "rb");
+    if (f == NULL)
+        return 0;
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    fclose(f);
+    return size;
+}
+
 void create_files(struct metainfo *meta)
 {
     char zero = '0';
-    for (size_t i = 0; meta->files[i]; i++) // Get position of piece in files
+    for (size_t i = 0; meta->files[i]; i++)
     {
+        // Check if file exist with correct size
+        if (access(meta->files[i], F_OK) == 0
+                && get_size_file(meta->files[i]) == meta->files_size[i])
+        {
+                continue;
+        }
         int fd = open(meta->files[i], O_WRONLY | O_CREAT | O_TRUNC, 00644);
         if (fd == -1)
         {
