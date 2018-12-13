@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "integrity.h"
+#include "tracker.h"
 
 int main(int argc, char **argv)
 {
