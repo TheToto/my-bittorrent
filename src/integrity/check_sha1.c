@@ -50,18 +50,23 @@ size_t get_total_size(struct metainfo *meta)
     return acu;
 }
 
-int check_piece(struct metainfo *meta, size_t nb)
+int check_piece_string(struct metainfo *meta, size_t nb,
+        unsigned char *piece, size_t piece_size)
 {
     unsigned char sha1[20];
     unfix_string(meta, sha1, nb); // Get piece nb hash
 
-    unsigned char *piece = malloc(meta->piece_size * sizeof(unsigned char));
-    size_t size = get_piece(meta, piece, nb);
-
     unsigned char hash[20];
-    SHA1(piece, size, hash); // Compute piece hash
+    SHA1(piece, piece_size, hash); // Compute piece hash
     free(piece);
     return memcmp(hash, sha1, 20) == 0; // Compare hashs
+}
+
+int check_piece(struct metainfo *meta, size_t nb)
+{
+    unsigned char *piece = malloc(meta->piece_size * sizeof(unsigned char));
+    size_t size = get_piece(meta, piece, nb);
+    return check_piece_string(meta, nb, piece, size);
 }
 
 int check_integrity(struct metainfo *meta)

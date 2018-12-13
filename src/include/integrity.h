@@ -8,6 +8,10 @@ int check_integrity(struct metainfo *meta);
 /// Check integrity of a piece (from files)
 int check_piece(struct metainfo *meta, size_t nb);
 
+/// Check integrity of a piece (from piece string)
+int check_piece_string(struct metainfo *meta, size_t nb,
+        unsigned char *piece, size_t piece_size);
+
 /// Get the total size of a torrent in bytes
 size_t get_total_size(struct metainfo *meta);
 
