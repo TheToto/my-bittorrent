@@ -101,8 +101,9 @@ struct metainfo *create_meta(json_t *json)
 
     json_t *j_pieces = json_object_get(j_info, "pieces");
     if (!j_pieces || !json_is_string(j_pieces))
-        return free_metainfo(meta);
-    meta->pieces = strdup(json_string_value(j_pieces));
+        meta->pieces = NULL;
+    else
+        meta->pieces = strdup(json_string_value(j_pieces));
 
     json_t *j_size = json_object_get(j_info, "piece length");
     if (!j_size || !json_is_integer(j_size))

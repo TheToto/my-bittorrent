@@ -1,4 +1,6 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
+#include <libgen.h>
 #include <string.h>
 #include <openssl/sha.h>
 #include <sys/types.h>
@@ -79,4 +81,32 @@ int check_integrity(struct metainfo *meta)
             return 0;
     }
     return 1;
+}
+
+char *compute_integrity(char *path, struct metainfo *meta, size_t *size)
+{
+    char *dup = strdup(path);
+    char *backup = get_current_dir_name();
+    chdir(dirname(dup));
+    size_t total = get_total_size(meta);
+    size_t nb_piece = total / meta->piece_size;
+    if (total > nb_piece * meta->piece_size)
+        nb_piece++;
+    *size = nb_piece * 20;
+    char *pieces = malloc(*size * sizeof(char));
+    for (size_t i = 0; i < nb_piece; i++)
+    {
+        unsigned char *piece = malloc(meta->piece_size * sizeof(unsigned char));
+        int piece_size = get_piece(meta, piece, i);
+
+        unsigned char hash[20];
+        SHA1(piece, piece_size, hash); // Compute piece hash
+        free(piece);
+
+        memcpy(pieces + i * 20, hash, 20); //
+    }
+    chdir(backup);
+    free(backup);
+    free(dup);
+    return pieces;
 }

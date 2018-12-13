@@ -2,6 +2,9 @@
 
 #include "parser.h"
 
+/// Compute pieces hashs of torrent (from files)
+char *compute_integrity(char *path, struct metainfo *meta, size_t *size);
+
 /// Check integrity of all pieces
 int check_integrity(struct metainfo *meta);
 
