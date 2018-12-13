@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <string.h>
 #include <sys/mman.h>
+#include <openssl/sha.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -9,6 +10,7 @@
 
 #include "bencode.h"
 #include "parser.h"
+#include "integrity.h"
 
 static char *file_to_string(char *path, size_t *size)
 {
@@ -21,6 +23,13 @@ static char *file_to_string(char *path, size_t *size)
     if (data == MAP_FAILED)
         return NULL;
     return data;
+}
+
+static void dump_json(json_t *json)
+{
+    char *s = json_dumps(json, 4);
+    puts(s);
+    free(s);
 }
 
 struct metainfo *decode_torrent(char *path, int print)
@@ -41,18 +50,23 @@ struct metainfo *decode_torrent(char *path, int print)
         return NULL;
     }
 
-    json_t *json = to_json(be);
-    be_free(be);
+    struct be_node *b_info;
+    json_t *json = to_json(be, &b_info);
+
     if (print)
-    {
-        char *s = json_dumps(json, 4);
-        puts(s);
-        free(s);
-    }
+        dump_json(json);
 
     struct metainfo *meta = create_meta(json);
 
+    size_t l_info;
+    void *s_info = be_encode(b_info, &l_info);
+    void *h_info = malloc(20 * sizeof(unsigned char));
+    SHA1(s_info, l_info, h_info);
+    meta->info_hash = h_info;
+    free(s_info);
+
     free_json(json);
+    be_free(be);
 
     return meta;
 }

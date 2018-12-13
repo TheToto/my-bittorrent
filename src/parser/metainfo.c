@@ -129,6 +129,8 @@ void *free_metainfo(struct metainfo *meta)
         free(meta->files_size);
     if (meta->pieces)
         free(meta->pieces);
+    if (meta->info_hash)
+        free(meta->info_hash);
     free(meta);
     return NULL;
 }

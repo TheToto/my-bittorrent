@@ -192,7 +192,7 @@ void mktorrent(char *path)
     struct be_node *root = create_root(path);
 
     // Compute hash (a bit ugly)
-    json_t *json = to_json(root);
+    json_t *json = to_json(root, NULL);
     struct metainfo *meta = create_meta(json);
     free_json(json);
     size_t s;

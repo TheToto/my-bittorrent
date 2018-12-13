@@ -29,14 +29,14 @@ static char *fix_string(char *str, size_t size)
     return buf;
 }
 
-static json_t *parse_node(struct be_node *be);
+static json_t *parse_node(struct be_node *be, struct be_node **info);
 
-static json_t *parse_list(struct be_node **list)
+static json_t *parse_list(struct be_node **list, struct be_node **info)
 {
     json_t *json = json_array();
     for (size_t i = 0; list[i]; i++)
     {
-        json_t *j_value = parse_node(list[i]);
+        json_t *j_value = parse_node(list[i], info);
         json_array_append_new(json, j_value);
     }
     return json;
@@ -55,20 +55,22 @@ static json_t *parse_int(long long int num)
     return json_integer(num);
 }
 
-static json_t *parse_dict(struct be_dict **dict)
+static json_t *parse_dict(struct be_dict **dict, struct be_node **info)
 {
     json_t *json = json_object();
     for (size_t i = 0; dict[i]; i++)
     {
         json_t *j_key = parse_str(dict[i]->key);
-        json_t *j_value = parse_node(dict[i]->val);
+        json_t *j_value = parse_node(dict[i]->val, info);
+        if (info && !strcmp(json_string_value(j_key), "info"))
+            *info = dict[i]->val;
         json_object_set_new(json, json_string_value(j_key), j_value);
         json_decref(j_key);
     }
     return json;
 }
 
-static json_t *parse_node(struct be_node *be)
+static json_t *parse_node(struct be_node *be, struct be_node **info)
 {
     switch (be->type)
     {
@@ -77,9 +79,9 @@ static json_t *parse_node(struct be_node *be)
     case BE_INT:
         return parse_int(be->element.num);
     case BE_LIST:
-        return parse_list(be->element.list);
+        return parse_list(be->element.list, info);
     case BE_DICT:
-        return parse_dict(be->element.dict);
+        return parse_dict(be->element.dict, info);
     }
     return NULL;
 }
@@ -89,8 +91,8 @@ void free_json(json_t *json)
     json_decref(json);
 }
 
-json_t *to_json(struct be_node *be)
+json_t *to_json(struct be_node *be, struct be_node **info)
 {
-    json_t *json = parse_node(be);
+    json_t *json = parse_node(be, info);
     return json;
 }
