@@ -9,9 +9,26 @@
 #include <curl/curl.h>
 #include <err.h>
 #include <string.h>
+#include <stdio.h>
+
+static size_t write_callback(char *ptr, size_t size, size_t nmemb,
+        void *userdata)
+{
+    size_t t_size = size * nmemb;
+    char *str = userdata;
+    for (size_t i = 0; i < t_size; i++)
+    {
+        printf("%c", str[i]);
+    }
+    printf("\n");
+    fflush(stdout);
+    return t_size;
+}
 
 char *init_tracker(char *url)
 {
+    if (!url)
+        return NULL;
     CURL *curl = curl_easy_init();
     if (!curl)
     {
@@ -21,7 +38,8 @@ char *init_tracker(char *url)
     char errbuff[CURL_ERROR_SIZE];
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    //curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
