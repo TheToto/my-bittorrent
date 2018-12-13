@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/sha.h>
@@ -6,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <err.h>
+#include <libgen.h>
 
 #include "parser.h"
 #include "integrity.h"
@@ -96,6 +98,28 @@ static size_t get_size_file(char *path)
     return size;
 }
 
+static void rec_mkdir(const char *dir)
+{
+    char *tmp = strdup(dir);
+    tmp = dirname(tmp);
+    size_t len = strlen(tmp);
+
+    if(tmp[len - 1] == '/')
+        tmp[len - 1] = '\0';
+
+    for(char *p = tmp + 1; *p; p++)
+    {
+        if(*p == '/')
+        {
+            *p = '\0';
+            mkdir(tmp, S_IRWXU);
+            *p = '/';
+        }
+    }
+    mkdir(tmp, S_IRWXU);
+    free(tmp);
+}
+
 void create_files(struct metainfo *meta)
 {
     char zero = '0';
@@ -105,8 +129,9 @@ void create_files(struct metainfo *meta)
         if (access(meta->files[i], F_OK) == 0
                 && get_size_file(meta->files[i]) == meta->files_size[i])
         {
-                continue;
+            continue;
         }
+        rec_mkdir(meta->files[i]);
         int fd = open(meta->files[i], O_WRONLY | O_CREAT | O_TRUNC, 00644);
         if (fd == -1)
         {
