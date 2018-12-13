@@ -100,8 +100,8 @@ static size_t get_size_file(char *path)
 
 static void rec_mkdir(const char *dir)
 {
-    char *tmp = strdup(dir);
-    tmp = dirname(tmp);
+    char *dup = strdup(dir);
+    char *tmp = dirname(dup);
     size_t len = strlen(tmp);
 
     if(tmp[len - 1] == '/')
@@ -117,7 +117,7 @@ static void rec_mkdir(const char *dir)
         }
     }
     mkdir(tmp, S_IRWXU);
-    free(tmp);
+    free(dup);
 }
 
 void create_files(struct metainfo *meta)
