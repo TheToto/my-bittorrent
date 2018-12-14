@@ -36,7 +36,7 @@ long get_portL(void)
     return PEER_PORT;
 }
 
-char *get_tracker_request(struct metadata *meta)
+char *get_tracker_request(struct metainfo *meta)
 {
     char *str = calloc(200, sizeof(char));
     if (!str)

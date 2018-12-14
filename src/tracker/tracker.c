@@ -15,7 +15,7 @@
 #include "parser.h"
 #include "tracker.h"
 
-char *init_tracker(char *url, struct metadata *meta)
+char *init_tracker(char *url, struct metainfo *meta)
 {
     if (!url)
         return NULL;
