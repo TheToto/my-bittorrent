@@ -22,7 +22,8 @@ int main(int argc, char **argv)
         if (meta)
         {
             create_files(meta);
-            char *url = init_tracker("http://182.176.139.129:6969/announce");
+            char *url = init_tracker("http://182.176.139.129:6969/announce",
+                    meta);
             printf("tracker content: %s\n", url);
             free(url);
             ret = check_integrity(meta);

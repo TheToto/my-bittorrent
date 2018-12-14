@@ -7,4 +7,13 @@
 */
 
 #pragma once
-char *init_tracker(char *url);
+
+#include "parser.h"
+
+#define PEER_PREFIX "-MB2021-"
+#define PEER_PORT 6881
+#define COMPACT 1
+
+char *init_tracker(char *url, struct metadata *meta);
+char *get_tracker_request(struct metadata *meta);
+long get_portL(void);
