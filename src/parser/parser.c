@@ -32,6 +32,31 @@ static void dump_json(json_t *json)
     free(s);
 }
 
+static char *to_web_hex(char *str)
+{
+    char *buf = calloc(20 * 3 + 1, sizeof(char));
+    size_t j = 0;
+    for (size_t i = 0; i < 20; i++, j++)
+    {
+        if (str[i] < 0x20 || str[i] > 0x7E)
+        {
+            char tmp[10] =
+            {
+                0
+            };
+            sprintf(tmp, "%%%02hhx", str[i]);
+            strcat(buf, tmp);
+            j += strlen(tmp) - 1;
+        }
+        else
+        {
+            buf[j] = str[i];
+        }
+    }
+    free(str);
+    return buf;
+}
+
 struct metainfo *decode_torrent(char *path, int print)
 {
     size_t size;
@@ -62,7 +87,7 @@ struct metainfo *decode_torrent(char *path, int print)
     void *s_info = be_encode(b_info, &l_info);
     void *h_info = malloc(20 * sizeof(unsigned char));
     SHA1(s_info, l_info, h_info);
-    meta->info_hash = h_info;
+    meta->info_hash = to_web_hex(h_info);
     free(s_info);
 
     free_json(json);
