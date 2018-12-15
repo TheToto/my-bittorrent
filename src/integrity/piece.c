@@ -132,15 +132,14 @@ void create_files(struct metainfo *meta)
             continue;
         }
         rec_mkdir(meta->files[i]);
-        int fd = open(meta->files[i], O_WRONLY | O_CREAT | O_TRUNC, 00644);
-        if (fd == -1)
+        FILE *f = fopen(meta->files[i], "w");
+        if (!f)
         {
             warn("Cannot open file %s", meta->files[i]);
             return;
         }
-        for (size_t j = 0; j < meta->files_size[i]; j++)
-        {
-            write(fd, &zero, 1);
-        }
+        fseek(f, meta->files_size[i] - 1, SEEK_SET);
+        fwrite(&zero, 1, 1, f);
+        fclose(f);
     }
 }

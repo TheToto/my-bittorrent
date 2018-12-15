@@ -59,8 +59,14 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         void *userdata)
 {
     size_t all = size * nmemb;
-    //fwrite(ptr, size, nmemb, stdout);
+    printf("RAW RESPONSE :\n");
+    fwrite(ptr, size, nmemb, stdout);
+    printf("\n");
     struct be_node *be = be_decode(ptr, all);
+    if (!be)
+    {
+        printf("FAILED TO DECODE BENCODE\n");
+    }
     json_t *json = to_json(be, NULL);
     json_t *j_peers = json_object_get(json, "peers");
     const char *peers = json_string_value(j_peers);
