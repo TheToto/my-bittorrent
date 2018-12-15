@@ -19,7 +19,7 @@ static char *get_peerID(void)
 {
     char *peer = calloc(21, sizeof(char));
     strcpy(peer, PEER_PREFIX);
-    char str[12] =
+    char str[13] =
     {
         0
     };
@@ -56,6 +56,6 @@ char *get_tracker_request(struct metainfo *meta)
     strcat(str, "&left=");
     sprintf(tmp3, "%lu", get_total_size(meta));
     strcat(str, tmp3);
-    strcat(str, "&downloaded=100&uploaded=0&compact=1");
+    strcat(str, "&downloaded=0&uploaded=0&compact=1");
     return str;
 }

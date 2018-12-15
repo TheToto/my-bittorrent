@@ -27,9 +27,7 @@ char *init_tracker(char *url, struct metainfo *meta)
     char *buf;
     char *request = get_tracker_request(meta);
     char errbuff[CURL_ERROR_SIZE];
-
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_PORT, get_portL());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, NULL);
@@ -38,6 +36,7 @@ char *init_tracker(char *url, struct metainfo *meta)
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
     char *res;
+    printf("KEY=\n%s\n\n", request);//DEBUG
     free(request);
     if (curl_easy_perform(curl) == CURLE_OK)
     {
