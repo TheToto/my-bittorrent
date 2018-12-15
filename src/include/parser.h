@@ -15,12 +15,13 @@ struct metainfo
     struct peer_list *peers;///< The peer list struct
 };
 
+/// List of peers attached to a metainfo struct
 struct peer_list
 {
-    char **ips;
-    int *ports;
-    size_t size;
-    size_t capacity;
+    char **ips;             ///< A list of peers ip
+    int *ports;             ///< A list of peers port
+    size_t size;            ///< The size of the list
+    size_t capacity;        ///< The capacity of the list
 };
 
 /// Convert a torrent path to a metainfo struct
@@ -41,4 +42,5 @@ void dump_json(json_t *json);
 /// Free json
 void free_json(json_t *json);
 
+/// mktorrent fonction (path can be file or directory)
 void mktorrent(char *path);

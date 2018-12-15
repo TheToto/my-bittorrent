@@ -72,35 +72,39 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         void *userdata)
 {
     size_t all = size * nmemb;
+    struct metainfo *meta = userdata;
+
     printf("RAW RESPONSE :\n");
     fwrite(ptr, size, nmemb, stdout);
     printf("\n");
+
     struct be_node *be = be_decode(ptr, all);
     if (!be)
-    {
         printf("FAILED TO DECODE BENCODE\n");
-    }
     json_t *json = to_json(be, NULL);
+    dump_json(json);
+
     json_t *j_peers = json_object_get(json, "peers");
     const char *peers = json_string_value(j_peers);
-
-    struct metainfo *meta = userdata;
 
     unsigned char *peer;
     for (size_t i = 0; (peer = decode_peers(i, peers)); i++)
     {
         void *tmp = peer;
         struct in_addr *ip = tmp;
+
         tmp = peer + 4;
         uint16_t *port = tmp;
-        char *s_ip = inet_ntoa(*ip);
+
+        char *real_ip = inet_ntoa(*ip);
         int real_port = ntohs(*port);
-        printf("%s - %d\n", s_ip, real_port);
-        add_to_peer_list(meta->peers, s_ip, real_port);
+
+        printf("%s - %d\n", real_ip, real_port);
+        add_to_peer_list(meta->peers, real_ip, real_port);
         free(peer);
     }
+
     be_free(be);
-    dump_json(json);
     free_json(json);
 
     return all;
