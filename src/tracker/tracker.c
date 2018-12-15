@@ -42,9 +42,12 @@ char *init_tracker(char *url, struct metainfo *meta)
     char *request = get_tracker_request(meta);
     char errbuff[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    curl_easy_setopt(curl, CURLOPT_READDATA, request);
-    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+    //curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+    //curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_REQUEST_TARGET, request);
+    //curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    //curl_easy_setopt(curl, CURLOPT_READDATA, request);
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
@@ -53,11 +56,11 @@ char *init_tracker(char *url, struct metainfo *meta)
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
     char *res;
-    printf("KEY=\n%s\n\n", request);//DEBUG
     free(request);
     if (curl_easy_perform(curl) == CURLE_OK)
     {
         //res = strdup(buf);
+
         curl_easy_cleanup(curl);
         curl_global_cleanup();
         return NULL;

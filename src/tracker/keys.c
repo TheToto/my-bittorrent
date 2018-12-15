@@ -42,7 +42,7 @@ char *get_tracker_request(struct metainfo *meta)
     if (!str)
         err(1, "get_tracker_request: cannot calloc");
 
-    strcpy(str, "GET /announce?peer_id=");
+    strcpy(str, "/announce?peer_id=");
     char *tmp = get_peerID();
     strcat(str, tmp);
     free(tmp);
