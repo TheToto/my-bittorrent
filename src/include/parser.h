@@ -6,12 +6,21 @@
 /// Info of a torrent file for easy use
 struct metainfo
 {
-    char *announce;     ///< Announce URL (may be empty)
-    char **files;       ///< Array of files paths, NULL terminated array
-    size_t *files_size; ///< Array of files size in bytes
-    size_t piece_size;  ///< Size of a piece
-    char *pieces;       ///< SHA1 hashs (20 bytes for each piece)
-    char *info_hash;    ///< 20 bytes hash of info dict
+    char *announce;         ///< Announce URL (may be empty)
+    char **files;           ///< Array of files paths, NULL terminated array
+    size_t *files_size;     ///< Array of files size in bytes
+    size_t piece_size;      ///< Size of a piece
+    char *pieces;           ///< SHA1 hashs (20 bytes for each piece)
+    char *info_hash;        ///< 20 bytes hash of info dict
+    struct peer_list *peers;///< The peer list struct
+};
+
+struct peer_list
+{
+    char **ips;
+    int *ports;
+    size_t size;
+    size_t capacity;
 };
 
 /// Convert a torrent path to a metainfo struct

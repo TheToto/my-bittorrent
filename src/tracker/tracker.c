@@ -55,6 +55,19 @@ static unsigned char *decode_peers(size_t nb, const char *str)
     return peer;
 }
 
+static void add_to_peer_list(struct peer_list *peers, char *ip, int port)
+{
+    if (peers->size == peers->capacity - 1)
+    {
+        peers->capacity *= 2;
+        peers->ips = realloc(peers->ips, peers->capacity * sizeof(char*));
+        peers->ports = realloc(peers->ports, peers->capacity * sizeof(int));
+    }
+    peers->ips[peers->size] = strdup(ip);
+    peers->ports[peers->size] = port;
+    peers->size += 1;
+}
+
 static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         void *userdata)
 {
@@ -70,8 +83,10 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
     json_t *json = to_json(be, NULL);
     json_t *j_peers = json_object_get(json, "peers");
     const char *peers = json_string_value(j_peers);
+
+    struct metainfo *meta = userdata;
+
     unsigned char *peer;
-    printf("DECODED IPS :\n");
     for (size_t i = 0; (peer = decode_peers(i, peers)); i++)
     {
         void *tmp = peer;
@@ -81,6 +96,7 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         char *s_ip = inet_ntoa(*ip);
         int real_port = ntohs(*port);
         printf("%s - %d\n", s_ip, real_port);
+        add_to_peer_list(meta->peers, s_ip, real_port);
         free(peer);
     }
     be_free(be);
@@ -105,7 +121,6 @@ char *init_tracker(char *url, struct metainfo *meta)
     {
         err(1, "init_tracker: cannot init curl-easy");
     }
-    char *buf;
     char *request = get_tracker_request(meta);
     char errbuff[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -116,8 +131,8 @@ char *init_tracker(char *url, struct metainfo *meta)
     //curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     //curl_easy_setopt(curl, CURLOPT_READDATA, request);
 
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, meta);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);

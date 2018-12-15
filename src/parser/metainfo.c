@@ -85,9 +85,20 @@ static struct metainfo *fill_files(struct metainfo *meta, json_t *j_info)
     return free_metainfo(meta);
 }
 
+static struct peer_list *init_peer_list(void)
+{
+    struct peer_list *peers = malloc(sizeof(struct peer_list));
+    peers->capacity = 8;
+    peers->size = 0;
+    peers->ips = malloc(sizeof(char*) * 8);
+    peers->ports = malloc(sizeof(int) * 8);
+    return peers;
+}
+
 struct metainfo *create_meta(json_t *json)
 {
     struct metainfo *meta = calloc(1, sizeof(struct metainfo));
+    meta->peers = init_peer_list();
 
     json_t *j_an = json_object_get(json, "announce");
     if (!j_an || !json_is_string(j_an))
@@ -117,6 +128,11 @@ void *free_metainfo(struct metainfo *meta)
 {
     if (!meta)
         return NULL;
+    for (size_t i = 0; i < meta->peers->size; i++)
+        free(meta->peers->ips[i]);
+    free(meta->peers->ips);
+    free(meta->peers->ports);
+    free(meta->peers);
     if (meta->announce)
         free(meta->announce);
     if (meta->files)
