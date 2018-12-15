@@ -26,6 +26,9 @@ void *free_metainfo(struct metainfo *meta);
 /// Convert a bencode node to json
 json_t *to_json(struct be_node *be, struct be_node **info);
 
+/// Print json
+void dump_json(json_t *json);
+
 /// Free json
 void free_json(json_t *json);
 

@@ -25,7 +25,7 @@ static char *file_to_string(char *path, size_t *size)
     return data;
 }
 
-static void dump_json(json_t *json)
+void dump_json(json_t *json)
 {
     char *s = json_dumps(json, 4);
     puts(s);
