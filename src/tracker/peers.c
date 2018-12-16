@@ -65,8 +65,22 @@ void handshake(struct metainfo *meta, struct peer *peer)
     send(peer->sockfd, build_handshake(meta), 68, 0);
     printf("Handshake sent !\n");
     char buffer[1024] = { 0 };
-    read(peer->sockfd, buffer, 1024);
-    printf("Response : %s\n\n", buffer);
+    ssize_t valread = recv(peer->sockfd, buffer, 1023, 0);
+    buffer[valread] = '\0';
+    if (valread != 49 + buffer[0])
+    {
+        warnx("Incorrect response (lenght : %ld, expected : %d)!\n", valread, 49 + buffer[0]);
+        close(peer->sockfd);
+        return;
+    }
+    if (memcmp(unfix_info_hash(meta->info_hash),
+                buffer + buffer[0] + 9, 20) != 0)
+    {
+        warnx("Incorrect response (hash_info)!\n");
+        close(peer->sockfd);
+        return;
+    }
+    printf("Peer id : %s\n\n", buffer + buffer[0] + 29);
 
     close(peer->sockfd);
 }
