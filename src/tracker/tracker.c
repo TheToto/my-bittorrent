@@ -60,11 +60,13 @@ static void add_to_peer_list(struct peer_list *peers, char *ip, int port)
     if (peers->size == peers->capacity - 1)
     {
         peers->capacity *= 2;
-        peers->ips = realloc(peers->ips, peers->capacity * sizeof(char*));
-        peers->ports = realloc(peers->ports, peers->capacity * sizeof(int));
+        peers->list = realloc(peers->list,
+                peers->capacity * sizeof(struct peer));
     }
-    peers->ips[peers->size] = strdup(ip);
-    peers->ports[peers->size] = port;
+    struct peer *new = malloc(sizeof(struct peer));
+    new->ip = strdup(ip);
+    new->port = port;
+    peers->list[peers->size] = new;
     peers->size += 1;
 }
 

@@ -12,16 +12,24 @@ struct metainfo
     size_t piece_size;      ///< Size of a piece
     char *pieces;           ///< SHA1 hashs (20 bytes for each piece)
     char *info_hash;        ///< 20 bytes hash of info dict
+    char *peer_id;
     struct peer_list *peers;///< The peer list struct
 };
 
 /// List of peers attached to a metainfo struct
 struct peer_list
 {
-    char **ips;             ///< A list of peers ip
-    int *ports;             ///< A list of peers port
+    struct peer **list;
     size_t size;            ///< The size of the list
     size_t capacity;        ///< The capacity of the list
+};
+
+struct peer
+{
+    char *ip;
+    int port;
+    //char *peer_id;
+    //enum state;
 };
 
 /// Convert a torrent path to a metainfo struct

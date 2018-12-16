@@ -15,22 +15,6 @@
 #include "tracker.h"
 #include "parser.h"
 
-static char *get_peerID(void)
-{
-    char *peer = calloc(21, sizeof(char));
-    strcpy(peer, PEER_PREFIX);
-    char str[13] =
-    {
-        0
-    };
-
-    srand(time(NULL));
-    for (int i = 0; i < 12; i++)
-        str[i] = rand() % 26 + 'a';
-    strcat(peer, str);
-    return peer;
-}
-
 long get_portL(void)
 {
     return PEER_PORT;
@@ -43,9 +27,7 @@ char *get_tracker_request(struct metainfo *meta)
         err(1, "get_tracker_request: cannot calloc");
 
     strcpy(str, "/announce?peer_id=");
-    char *tmp = get_peerID();
-    strcat(str, tmp);
-    free(tmp);
+    strcat(str, meta->peer_id);
     strcat(str, "&info_hash=");
     strcat(str, meta->info_hash);
     strcat(str, "&port=");

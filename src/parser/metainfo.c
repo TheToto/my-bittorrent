@@ -6,7 +6,9 @@
 #include <unistd.h>
 #include <err.h>
 #include <jansson.h>
+#include <time.h>
 
+#include "tracker.h"
 #include "bencode.h"
 #include "parser.h"
 
@@ -90,15 +92,31 @@ static struct peer_list *init_peer_list(void)
     struct peer_list *peers = malloc(sizeof(struct peer_list));
     peers->capacity = 8;
     peers->size = 0;
-    peers->ips = malloc(sizeof(char*) * 8);
-    peers->ports = malloc(sizeof(int) * 8);
+    peers->list = malloc(sizeof(struct peer*) * 8);
     return peers;
+}
+
+static char *get_peerID(void)
+{
+    char *peer = calloc(21, sizeof(char));
+    strcpy(peer, PEER_PREFIX);
+    char str[13] =
+    {
+        0
+    };
+
+    srand(time(NULL));
+    for (int i = 0; i < 12; i++)
+        str[i] = rand() % 26 + 'a';
+    strcat(peer, str);
+    return peer;
 }
 
 struct metainfo *create_meta(json_t *json)
 {
     struct metainfo *meta = calloc(1, sizeof(struct metainfo));
     meta->peers = init_peer_list();
+    meta->peer_id = get_peerID();
 
     json_t *j_an = json_object_get(json, "announce");
     if (!j_an || !json_is_string(j_an))
@@ -129,9 +147,11 @@ void *free_metainfo(struct metainfo *meta)
     if (!meta)
         return NULL;
     for (size_t i = 0; i < meta->peers->size; i++)
-        free(meta->peers->ips[i]);
-    free(meta->peers->ips);
-    free(meta->peers->ports);
+    {
+        free(meta->peers->list[i]->ip);
+        free(meta->peers->list[i]);
+    }
+    free(meta->peers->list);
     free(meta->peers);
     if (meta->announce)
         free(meta->announce);
@@ -141,6 +161,8 @@ void *free_metainfo(struct metainfo *meta)
             free(meta->files[i]);
         free(meta->files);
     }
+    if (meta->peer_id)
+        free(meta->peer_id);
     if (meta->files_size)
         free(meta->files_size);
     if (meta->pieces)
