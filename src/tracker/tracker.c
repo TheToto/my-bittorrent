@@ -160,4 +160,5 @@ char *init_tracker(char *url, struct metainfo *meta)
         curl_global_cleanup();
         return NULL;
     }
+    return NULL;
 }

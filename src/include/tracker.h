@@ -17,3 +17,5 @@
 char *init_tracker(char *url, struct metainfo *meta);
 char *get_tracker_request(struct metainfo *meta);
 long get_portL(void);
+
+void handshake(struct metainfo *meta, struct peer *peer);

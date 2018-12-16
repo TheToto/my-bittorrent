@@ -28,6 +28,7 @@ struct peer
 {
     char *ip;
     int port;
+    int sockfd;
     //char *peer_id;
     //enum state;
 };

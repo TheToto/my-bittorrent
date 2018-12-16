@@ -22,9 +22,13 @@ int main(int argc, char **argv)
         if (meta)
         {
             create_files(meta);
-            char *url = init_tracker(meta->announce, meta);
-            //printf("tracker content: %s\n", url);
-            free(url);
+            init_tracker(meta->announce, meta);
+
+            for (size_t i = 0; i < meta->peers->size; i++)
+            {
+                handshake(meta, meta->peers->list[i]);
+            }
+
             ret = check_integrity(meta);
             free_metainfo(meta);
             if (ret)
