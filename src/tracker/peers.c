@@ -14,13 +14,30 @@
 #include "parser.h"
 #include "tracker.h"
 
+static char *unfix_info_hash(char *str)
+{
+    static char hash[20];
+    size_t j = 0;
+    for (size_t i = 0; j < 20; i += 3, j++)
+    {
+        char tmp[3] =
+        {
+            str[i + 1], str[i + 2], '\0'
+        };
+        unsigned int hex;
+        sscanf(tmp, "%02X", &hex);
+        hash[j] = hex;
+    }
+    return hash;
+}
+
 static char *build_handshake(struct metainfo *meta)
 {
     static char hand[68];
     hand[0] = 19;
     memcpy(hand + 1, "BitTorrent protocol", 19);
     memcpy(hand + 20, "\0\0\0\0\0\0\0\0", 8);
-    memcpy(hand + 28, meta->info_hash, 20);
+    memcpy(hand + 28, unfix_info_hash(meta->info_hash), 20);
     memcpy(hand + 48, meta->peer_id, 20);
     return hand;
 }
