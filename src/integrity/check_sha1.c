@@ -94,6 +94,12 @@ char *compute_integrity(char *path, struct metainfo *meta, size_t *size)
     char *backup = get_current_dir_name();
     chdir(dirname(dup));
 
+    size_t total = get_total_size(meta);
+    size_t nb_piece = total / meta->piece_size;
+    if (total > nb_piece * meta->piece_size)
+        nb_piece++;
+
+    meta->nb_piece = nb_piece;
     *size = meta->nb_piece * 20;
     char *pieces = malloc(*size * sizeof(char));
     for (size_t i = 0; i < meta->nb_piece; i++)
