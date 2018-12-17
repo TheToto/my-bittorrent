@@ -22,6 +22,7 @@ static void switch_events_next(struct metainfo *meta, struct peer *peer,
         break;
 
     case 7:
+        handle_piece(meta, len, str, peer);
         break;
 
     case 8:
