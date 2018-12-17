@@ -98,7 +98,7 @@ static void handle_handshake(struct metainfo *meta, struct peer *peer,
     peer->handshaked = 1;
 }
 
-static void fill_avaible_tab(struct metainfo *meta, uint32_t len, char *str,
+void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
 {
     char cur = str[0];
@@ -129,8 +129,7 @@ static void handle_type_req(struct metainfo *meta, struct peer *peer,
     printf("\n");
     void *tmp = str;
     uint32_t *len = tmp;
-    if (str[4] == '5')
-        fill_avaible_tab(meta, ntohl(*len), str + 5, peer);
+    switch_events(meta, peer, str, ntohl(*len));
     printf("length : %d\n", ntohl(*len));
     printf("type : %d\n", str[4]);
 }
