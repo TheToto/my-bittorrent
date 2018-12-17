@@ -107,7 +107,7 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         const char *peers = json_string_value(j_peers);
 
         unsigned char *peer;
-        for (size_t i = 0; (peer = decode_peers(i, peers)); i++)
+        for (size_t i = 0; i < 10 && (peer = decode_peers(i, peers)); i++)
         {
             void *tmp = peer;
             struct in_addr *ip = tmp;

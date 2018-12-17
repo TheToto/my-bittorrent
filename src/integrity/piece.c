@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <err.h>
 #include <libgen.h>
+#include <stdio.h>
 
 #include "parser.h"
 #include "integrity.h"
@@ -31,20 +32,20 @@ size_t get_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
     size_t k = 0;
     for (; k < meta->piece_size && meta->files[i]; i++) // Get piece content
     {
-        int fd = open(meta->files[i], O_RDONLY);
-        if (fd == -1)
+        FILE *f = fopen(meta->files[i], "r");
+        if (!f)
         {
             warn("Cannot open file %s", meta->files[i]);
             return 0;
         }
         if (ptr)
         {
-            lseek(fd, ptr, SEEK_SET);
+            fseek(f, ptr, SEEK_SET);
             ptr = 0;
         }
-        for (unsigned char c; k < meta->piece_size && read(fd, &c, 1); k++)
+        for (unsigned char c; k < meta->piece_size && fread(&c, 1, 1, f); k++)
             piece[k] = c;
-        close(fd);
+        fclose(f);
     }
     return k;
 }
@@ -68,7 +69,8 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
     for (size_t k = 0; k < meta->piece_size && meta->files[i]; i++)
     {
         int fd = open(meta->files[i], O_WRONLY);
-        if (fd == -1)
+        FILE *f = fdopen(fd, "w");
+        if (!f)
         {
             warn("Cannot open file %s", meta->files[i]);
             return;
@@ -81,9 +83,9 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
         for (size_t cur = 0; k < meta->piece_size
                 && cur < meta->files_size[i]; k++, cur++)
         {
-            write(fd, piece + k, 1);
+            fwrite(piece + k, 1, 1, f);
         }
-        close(fd);
+        fclose(f);
     }
 }
 

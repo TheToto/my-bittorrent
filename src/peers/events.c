@@ -24,6 +24,7 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         if (j % 8 == 0)
             cur = str[j / 8];
     }
+    request(meta, peer);
 }
 
 void handle_have(uint32_t len, char *str, struct peer *peer)

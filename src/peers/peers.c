@@ -89,10 +89,21 @@ void request(struct metainfo *meta, struct peer *peer)
     {
         size_t i = 0;
         for (; i < meta->nb_piece; i++)
-            if (meta->have[i] == 0)
+        {
+            if (meta->have[i] == 0 && peer->have[i] == 1)
                 break;
-        if (i == meta->nb_piece)
+        }
+        if (i == meta->nb_piece) // Test if download is complete
+        {
+            for (i = 0; i < meta->nb_piece; i++)
+            {
+                if (meta->have[i] == 0)
+                {
+                    return; // No complete : Peer have no piece needed
+                }
+            }
             errx(0, "Download finised");
+        }
         piece->id_piece = i;
         piece->piece_size = get_piece_size(meta, i);
         piece->nb_blocks = piece->piece_size / 16384;
