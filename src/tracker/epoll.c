@@ -112,7 +112,9 @@ static void handle_type_req(struct metainfo *meta, struct peer *peer,
         printf("%02hhX ", str[i]);
     }
     printf("\n");
-    printf("length : %d\n", (uint32_t)str[0]);
+    void *tmp = str;
+    uint32_t *len = tmp;
+    printf("length : %d\n", ntohl(*len));
     printf("type : %d\n", str[4]);
 }
 
