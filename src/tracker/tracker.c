@@ -24,7 +24,7 @@
 static unsigned char *decode_peers(size_t nb, const char *str)
 {
     size_t i = 0;
-    for (size_t k = 0; str[i] && k < nb * 6; k++, i++) // Go to nb picece hash
+    for (size_t k = 0; k < nb * 6 && str[i]; k++, i++) // Go to nb picece hash
     {
         if (str[i] == 'U' && str[i + 1] == '+' && str[i + 2] == '0'
                 && str[i + 3] == '0' && str[i + 4] && str[i + 5])
@@ -66,6 +66,8 @@ static void add_to_peer_list(struct peer_list *peers, char *ip, int port)
     struct peer *new = malloc(sizeof(struct peer));
     new->ip = strdup(ip);
     new->port = port;
+    new->sockfd = -1;
+    new->handshaked = 0;
     peers->list[peers->size] = new;
     peers->size += 1;
 }
@@ -92,27 +94,34 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
     json_t *json = to_json(be, NULL);
     //dump_json(json);
 
-    json_t *j_peers = json_object_get(json, "peers");
-    const char *peers = json_string_value(j_peers);
-
-    unsigned char *peer;
-    for (size_t i = 0; (peer = decode_peers(i, peers)); i++)
+    json_t *j_fail = json_object_get(json, "failure reason");
+    if (j_fail)
     {
-        void *tmp = peer;
-        struct in_addr *ip = tmp;
-
-        tmp = peer + 4;
-        uint16_t *port = tmp;
-
-        char *real_ip = inet_ntoa(*ip);
-        int real_port = ntohs(*port);
-
-        if (meta->dump_peers)
-            printf("%s:%d\n", real_ip, real_port);
-        add_to_peer_list(meta->peers, real_ip, real_port);
-        free(peer);
+        printf("Tracker failure : %s\n", json_string_value(j_fail));
     }
+    else
+    {
+        json_t *j_peers = json_object_get(json, "peers");
+        const char *peers = json_string_value(j_peers);
 
+        unsigned char *peer;
+        for (size_t i = 0; (peer = decode_peers(i, peers)); i++)
+        {
+            void *tmp = peer;
+            struct in_addr *ip = tmp;
+
+            tmp = peer + 4;
+            uint16_t *port = tmp;
+
+            char *real_ip = inet_ntoa(*ip);
+            int real_port = ntohs(*port);
+
+            if (meta->dump_peers)
+                printf("%s:%d\n", real_ip, real_port);
+            add_to_peer_list(meta->peers, real_ip, real_port);
+            free(peer);
+        }
+    }
     be_free(be);
     free_json(json);
 

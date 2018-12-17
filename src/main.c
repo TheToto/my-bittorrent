@@ -84,6 +84,7 @@ int main(int argc, char **argv)
         {
             handshake(meta, meta->peers->list[i]);
         }
+        wait_event_epoll(meta);
 
         ret = check_integrity(meta);
         free_metainfo(meta);

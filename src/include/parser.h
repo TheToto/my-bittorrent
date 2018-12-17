@@ -33,6 +33,7 @@ struct peer
     char *ip;               ///< Ip of the peer
     int port;               ///< Port of the peer
     int sockfd;             ///< FD of socket
+    int handshaked;
     //char *peer_id;        ///< Peer_id of the peer
     //enum state;
     //int *have;            ///< Booleans if have index piece
