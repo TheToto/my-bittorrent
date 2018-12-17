@@ -119,6 +119,7 @@ struct metainfo *create_meta(json_t *json, int dump_peers, int verbose)
     meta->dump_peers = dump_peers;
     meta->peers = init_peer_list();
     meta->peer_id = get_peerID();
+    meta->cur_piece = calloc(1, sizeof(struct piece));
 
     json_t *j_an = json_object_get(json, "announce");
     if (!j_an || !json_is_string(j_an))
@@ -155,6 +156,9 @@ void *free_metainfo(struct metainfo *meta)
     }
     free(meta->peers->list);
     free(meta->peers);
+    if (meta->cur_piece->have)
+        free(meta->cur_piece->have);
+    free(meta->cur_piece);
     if (meta->announce)
         free(meta->announce);
     if (meta->files)

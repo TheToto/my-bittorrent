@@ -18,6 +18,16 @@ struct metainfo
     struct peer_list *peers;///< The peer list struct
     char verbose;
     char dump_peers;
+    struct piece *cur_piece;///< Current download
+};
+
+struct piece
+{
+    char *have;             ///< 0 if we have block id, size = piece_size/16KB
+    size_t id_piece;        ///< Index of piece
+    size_t piece_size;      ///< Size of the current piece usefull if last
+    size_t nb_blocks;       ///< Number of blocks
+    char *buf;              ///< Buffer of size
 };
 
 /// List of peers attached to a metainfo struct
@@ -34,7 +44,7 @@ struct peer
     char *ip;               ///< Ip of the peer
     int port;               ///< Port of the peer
     int sockfd;             ///< FD of socket
-    int handshaked;
+    char handshaked;
     //char *peer_id;        ///< Peer_id of the peer
     char state;             ///< Flag for choking status
     char *have;             ///< Booleans if have index piece

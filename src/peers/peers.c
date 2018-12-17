@@ -49,27 +49,20 @@ void handshake(struct metainfo *meta, struct peer *peer)
         return;
     send(peer->sockfd, build_handshake(meta), 68, 0);
     printf("Handshake sent to %s !\n", peer->ip);
-    /*
-    char buffer[1024] = { 0 };
-    ssize_t valread = recv(peer->sockfd, buffer, 1023, 0);
-    buffer[valread] = '\0';
-    if (valread != 49 + buffer[0])
-    {
-        warnx("Incorrect response (lenght : %ld, expected : %d)!\n",
-                valread, 49 + buffer[0]);
-        close(peer->sockfd);
-        // REMOVE PEER
-        return;
-    }
-    if (memcmp(unfix_info_hash(meta->info_hash),
-                buffer + buffer[0] + 9, 20) != 0)
-    {
-        warnx("Incorrect response (hash_info)!\n");
-        close(peer->sockfd);
-        // REMOVE PEER
-        return;
-    }
-    printf("Peer id : %s\n\n", buffer + buffer[0] + 29);
+}
 
-    //close(peer->sockfd);*/
+static char *build_request(struct metainfo *meta)
+{
+
+    return NULL;
+}
+
+void request(struct metainfo *meta, struct peer *peer)
+{
+    struct piece *piece = meta->cur_piece;
+    if (piece->buf == NULL)
+    {
+        // INIT PIECE
+    }
+    // REQUEST A PIECE
 }
