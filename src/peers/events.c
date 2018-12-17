@@ -1,6 +1,6 @@
 /**
 * @file events.c
-* @author louis.holleville
+* @author louis.holleville thomas.lupin
 * @version 0.1
 * @date 17-12-2018
 * Handling of events in epoll
@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include "epoll.h"
+#include "integrity.h"
 
 void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
@@ -37,17 +38,44 @@ void handle_have(uint32_t len, char *str, struct peer *peer)
 void handle_piece(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
 {
-   uint32_t f_len = len - 9;
-   void *tmp = str + 1;
-   uint32_t *id = tmp;
-   if (meta->cur_piece->id_piece != ntohl(*id))//err
-       return;
-   tmp = str + 5;
-   uint32_t *offset_BE = tmp;
-   uint32_t offset = ntohl(*offset_BE);
-   tmp = str + 9;
-   char *piece = tmp;
-   memcpy(meta->cur_piece->buf + offset, piece, f_len);
-   //update have
-   //check piece integrity->write->buff0->lauch handle_request
+    uint32_t f_len = len - 9;
+    void *tmp = str + 1;
+    uint32_t *id = tmp;
+    if (meta->cur_piece->id_piece != ntohl(*id))//err
+        return;
+    tmp = str + 5;
+    uint32_t *offset_BE = tmp;
+    uint32_t offset = ntohl(*offset_BE);
+    tmp = str + 9;
+    char *piece = tmp;
+    memcpy(meta->cur_piece->buf + offset, piece, f_len);
+    meta->cur_piece->have[offset / 16384] = 2;
+    printf("Receive piece %d, block %d from %s !",
+            ntohl(*id), offset / 16384, peer->ip);
+
+    for (size_t i = 0; i < meta->cur_piece->nb_blocks; i++)
+    {
+        if (meta->cur_piece->have[i] != 2)
+        {
+            request(meta, peer);
+            return;
+        }
+    }
+
+    if (check_piece_string(meta, meta->cur_piece->id_piece,
+                meta->cur_piece->buf, meta->cur_piece->piece_size))
+    {
+        write_piece(meta, meta->cur_piece->buf, meta->cur_piece->id_piece);
+        meta->have[meta->cur_piece->id_piece] = 1;
+        printf("Piece %ld completed !\n", meta->cur_piece->id_piece);
+    }
+    else
+    {
+        printf("Piece %ld failed integrity !\n", meta->cur_piece->id_piece);
+    }
+
+    free(meta->cur_piece->buf);
+    free(meta->cur_piece->have);
+    meta->cur_piece->buf = NULL;
+    request(meta, peer);
 }

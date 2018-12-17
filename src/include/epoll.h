@@ -21,3 +21,6 @@ void handle_piece(struct metainfo *meta, uint32_t len, char *str,
 ///Switching functions between differents response ID of peers
 void switch_events(struct metainfo *meta, struct peer *peer, char *str,
         uint32_t len);
+
+/// Send a request to peer
+void request(struct metainfo *meta, struct peer *peer);

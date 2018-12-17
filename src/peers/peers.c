@@ -109,10 +109,14 @@ void request(struct metainfo *meta, struct peer *peer)
     }
     if (i == piece->nb_blocks)
     {
-        errx(1, "Nope, you are funcking something");
-        return;
+        for (; i < piece->nb_blocks; i++)
+        {
+            if (piece->have[i] == 1) //ReAsk missing parts
+                break;
+        }
     }
     send(peer->sockfd, build_request(piece, i), 17, 0);
+    piece->have[i] = 1;
     printf("Request piece %ld, block %ld sent to %s !\n", piece->id_piece,
             i, peer->ip);
 }

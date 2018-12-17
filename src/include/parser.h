@@ -27,7 +27,7 @@ struct piece
     size_t id_piece;        ///< Index of piece
     size_t piece_size;      ///< Size of the current piece usefull if last
     size_t nb_blocks;       ///< Number of blocks
-    char *buf;              ///< Buffer of size
+    unsigned char *buf;              ///< Buffer of size
 };
 
 /// List of peers attached to a metainfo struct
