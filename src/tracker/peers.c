@@ -45,7 +45,7 @@ static char *build_handshake(struct metainfo *meta)
 void handshake(struct metainfo *meta, struct peer *peer)
 {
     printf("Handshake to %s\n", peer->ip);
-    peer->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    peer->sockfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
     struct sockaddr_in serv_addr;
     serv_addr.sin_family = AF_INET;
@@ -69,7 +69,8 @@ void handshake(struct metainfo *meta, struct peer *peer)
     buffer[valread] = '\0';
     if (valread != 49 + buffer[0])
     {
-        warnx("Incorrect response (lenght : %ld, expected : %d)!\n", valread, 49 + buffer[0]);
+        warnx("Incorrect response (lenght : %ld, expected : %d)!\n",
+                valread, 49 + buffer[0]);
         close(peer->sockfd);
         return;
     }

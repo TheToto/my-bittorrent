@@ -33,6 +33,7 @@ struct peer
     int sockfd;
     //char *peer_id;
     //enum state;
+    //int *have_pieces;
 };
 
 /// Convert a torrent path to a metainfo struct

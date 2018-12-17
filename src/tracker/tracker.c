@@ -1,6 +1,6 @@
 /**
 * @file tracker.c
-* @author louis.holleville
+* @author louis.holleville thomas.lupin
 * @version 0.1
 * @date 13-12-2018
 * Management of initial tracker connexion
@@ -137,6 +137,7 @@ char *init_tracker(char *url, struct metainfo *meta)
     char *request = get_tracker_request(meta);
     char errbuff[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3);
     //curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
     //curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
