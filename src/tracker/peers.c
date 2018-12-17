@@ -13,6 +13,7 @@
 
 #include "parser.h"
 #include "tracker.h"
+#include "epoll.h"
 
 static char *unfix_info_hash(char *str)
 {
@@ -44,26 +45,11 @@ static char *build_handshake(struct metainfo *meta)
 
 void handshake(struct metainfo *meta, struct peer *peer)
 {
-    printf("Handshake to %s\n", peer->ip);
-    peer->sockfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-
-    struct sockaddr_in serv_addr;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(peer->port);
-    if (inet_pton(AF_INET, peer->ip, &serv_addr.sin_addr) <= 0)
-    {
-        warnx("Unsuported IP : %s\n", peer->ip);
-        close(peer->sockfd);
+    if (peer->sockfd == -1)
         return;
-    }
-    if (connect(peer->sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-        warnx("Connect failed : %s\n", peer->ip);
-        close(peer->sockfd);
-        return;
-    }
     send(peer->sockfd, build_handshake(meta), 68, 0);
-    printf("Handshake sent !\n");
+    printf("Handshake sent to %s !\n", peer->ip);
+    /*
     char buffer[1024] = { 0 };
     ssize_t valread = recv(peer->sockfd, buffer, 1023, 0);
     buffer[valread] = '\0';
@@ -72,6 +58,7 @@ void handshake(struct metainfo *meta, struct peer *peer)
         warnx("Incorrect response (lenght : %ld, expected : %d)!\n",
                 valread, 49 + buffer[0]);
         close(peer->sockfd);
+        // REMOVE PEER
         return;
     }
     if (memcmp(unfix_info_hash(meta->info_hash),
@@ -79,9 +66,10 @@ void handshake(struct metainfo *meta, struct peer *peer)
     {
         warnx("Incorrect response (hash_info)!\n");
         close(peer->sockfd);
+        // REMOVE PEER
         return;
     }
     printf("Peer id : %s\n\n", buffer + buffer[0] + 29);
 
-    close(peer->sockfd);
+    //close(peer->sockfd);*/
 }

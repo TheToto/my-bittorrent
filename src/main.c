@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "integrity.h"
 #include "tracker.h"
+#include "epoll.h"
 
 static struct option long_opt[] =
 {
@@ -76,6 +77,8 @@ int main(int argc, char **argv)
     {
         create_files(meta);
         init_tracker(meta->announce, meta);
+        init_epoll(meta->peers);
+        add_peers_to_epoll(meta->peers);
 
         for (size_t i = 0; i < meta->peers->size; i++)
         {

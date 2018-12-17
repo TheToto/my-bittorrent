@@ -11,8 +11,9 @@ struct metainfo
     size_t *files_size;     ///< Array of files size in bytes
     size_t piece_size;      ///< Size of a piece
     char *pieces;           ///< SHA1 hashs (20 bytes for each piece)
+    int *have;              ///< Booleans if have index piece
     char *info_hash;        ///< 20 bytes hash of info dict
-    char *peer_id;
+    char *peer_id;          ///< Peer id of the client
     struct peer_list *peers;///< The peer list struct
     int verbose;
     int dump_peers;
@@ -21,19 +22,20 @@ struct metainfo
 /// List of peers attached to a metainfo struct
 struct peer_list
 {
-    struct peer **list;
+    struct peer **list;     ///< List of peer struct
     size_t size;            ///< The size of the list
     size_t capacity;        ///< The capacity of the list
+    int epoll;              ///< Epoll fd
 };
 
 struct peer
 {
-    char *ip;
-    int port;
-    int sockfd;
-    //char *peer_id;
+    char *ip;               ///< Ip of the peer
+    int port;               ///< Port of the peer
+    int sockfd;             ///< FD of socket
+    //char *peer_id;        ///< Peer_id of the peer
     //enum state;
-    //int *have_pieces;
+    //int *have;            ///< Booleans if have index piece
 };
 
 /// Convert a torrent path to a metainfo struct
