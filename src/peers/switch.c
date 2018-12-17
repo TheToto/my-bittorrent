@@ -37,9 +37,11 @@ void switch_events(struct metainfo *meta, struct peer *peer, char *str,
 {
     switch (str[4])
     {
+
     case 0:
-        break;
+        break;//handle timeout
     case 1:
+        peer->state = !peer->state;
         break;
 
     case 2:
@@ -49,6 +51,7 @@ void switch_events(struct metainfo *meta, struct peer *peer, char *str,
         break;
 
     case 4:
+        handle_have(len, str, peer);
         break;
 
     default:

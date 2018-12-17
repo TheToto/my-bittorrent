@@ -36,8 +36,8 @@ struct peer
     int sockfd;             ///< FD of socket
     int handshaked;
     //char *peer_id;        ///< Peer_id of the peer
-    //enum state;
-    char *have;            ///< Booleans if have index piece
+    char state;             ///< Flag for choking status
+    char *have;             ///< Booleans if have index piece
 };
 
 /// Convert a torrent path to a metainfo struct
