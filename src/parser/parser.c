@@ -84,6 +84,14 @@ struct metainfo *decode_torrent(char *path,
     meta->info_hash = to_web_hex(h_info);
     free(s_info);
 
+    size_t total = get_total_size(meta);
+    size_t nb_piece = total / meta->piece_size;
+    if (total > nb_piece * meta->piece_size)
+        nb_piece++;
+    meta->nb_piece = nb_piece;
+
+    meta->have = calloc(meta->nb_piece, sizeof(char));
+
     free_json(json);
     be_free(be);
 

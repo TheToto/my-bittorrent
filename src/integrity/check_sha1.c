@@ -73,14 +73,19 @@ int check_piece(struct metainfo *meta, size_t nb)
 
 int check_integrity(struct metainfo *meta)
 {
-    size_t total = get_total_size(meta);
-    for (size_t i = 0; i * meta->piece_size < total; i++)
+    int ret = 1;
+    for (size_t i = 0; i < meta->nb_piece; i++)
     {
         int res = check_piece(meta, i);
         if (!res)
-            return 0;
+        {
+            meta->have[i] = 0;
+            ret = 0;
+        }
+        else
+            meta->have[i] = 1;
     }
-    return 1;
+    return ret;
 }
 
 char *compute_integrity(char *path, struct metainfo *meta, size_t *size)
@@ -88,13 +93,10 @@ char *compute_integrity(char *path, struct metainfo *meta, size_t *size)
     char *dup = strdup(path);
     char *backup = get_current_dir_name();
     chdir(dirname(dup));
-    size_t total = get_total_size(meta);
-    size_t nb_piece = total / meta->piece_size;
-    if (total > nb_piece * meta->piece_size)
-        nb_piece++;
-    *size = nb_piece * 20;
+
+    *size = meta->nb_piece * 20;
     char *pieces = malloc(*size * sizeof(char));
-    for (size_t i = 0; i < nb_piece; i++)
+    for (size_t i = 0; i < meta->nb_piece; i++)
     {
         unsigned char *piece = malloc(meta->piece_size * sizeof(unsigned char));
         int piece_size = get_piece(meta, piece, i);

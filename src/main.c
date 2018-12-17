@@ -76,6 +76,11 @@ int main(int argc, char **argv)
     if (meta)
     {
         create_files(meta);
+        if (check_integrity(meta))
+        {
+            printf("File already downloaded\n");
+            exit(0);
+        }
         init_tracker(meta->announce, meta);
         init_epoll(meta->peers);
         add_peers_to_epoll(meta->peers);

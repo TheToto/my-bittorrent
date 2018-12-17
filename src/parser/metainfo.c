@@ -171,6 +171,8 @@ void *free_metainfo(struct metainfo *meta)
         free(meta->pieces);
     if (meta->info_hash)
         free(meta->info_hash);
+    if (meta->have)
+        free(meta->have);
     free(meta);
     return NULL;
 }

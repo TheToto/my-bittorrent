@@ -55,8 +55,9 @@ static unsigned char *decode_peers(size_t nb, const char *str)
     return peer;
 }
 
-static void add_to_peer_list(struct peer_list *peers, char *ip, int port)
+static void add_to_peer_list(struct metainfo *meta, char *ip, int port)
 {
+    struct peer_list *peers = meta->peers;
     if (peers->size == peers->capacity - 1)
     {
         peers->capacity *= 2;
@@ -68,6 +69,7 @@ static void add_to_peer_list(struct peer_list *peers, char *ip, int port)
     new->port = port;
     new->sockfd = -1;
     new->handshaked = 0;
+    new->have = calloc(meta->nb_piece, sizeof(char));
     peers->list[peers->size] = new;
     peers->size += 1;
 }
@@ -118,7 +120,7 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
 
             if (meta->dump_peers)
                 printf("%s:%d\n", real_ip, real_port);
-            add_to_peer_list(meta->peers, real_ip, real_port);
+            add_to_peer_list(meta, real_ip, real_port);
             free(peer);
         }
     }
