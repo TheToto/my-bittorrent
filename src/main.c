@@ -23,7 +23,6 @@ static struct option long_opt[] =
     {
         "verbose", no_argument, 0, 0
     },
-
     {
         0, 0, 0, 0
     }

@@ -188,7 +188,17 @@ static struct be_node *create_root(char *path)
 void mktorrent(char *path)
 {
     if (access(path, F_OK) == -1)
-        return;
+        errx(1, "File/Folder %s dosen't exist", path);
+    char *torrent_path = calloc(strlen(path) + 20, 1);
+    strcat(torrent_path, path);
+    if (torrent_path[strlen(torrent_path) - 1] == '/')
+        torrent_path[strlen(torrent_path) - 1] = '\0';
+    strcat(torrent_path, ".torrent");
+    if (access(torrent_path, F_OK) != -1)
+    {
+        free(torrent_path);
+        errx(1, "File %s.torrent already exist", path);
+    }
     struct be_node *r = create_root(path);
 
     // Compute hash (a bit ugly)
@@ -208,11 +218,6 @@ void mktorrent(char *path)
     if (!enc)
         errx(1, "Can't encode be_node");
 
-    char *torrent_path = calloc(strlen(path) + 20, 1);
-    strcat(torrent_path, path);
-    if (torrent_path[strlen(torrent_path) - 1] == '/')
-        torrent_path[strlen(torrent_path) - 1] = '\0';
-    strcat(torrent_path, ".torrent");
     FILE *f = fopen(torrent_path, "w");
     free(torrent_path);
     if (!f)
