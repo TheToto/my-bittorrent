@@ -11,6 +11,7 @@
 
 #include "parser.h"
 #include "tracker.h"
+#include "epoll.h"
 
 #define MAX_EVENTS 500
 #define READ_SIZE 262144
@@ -121,7 +122,6 @@ static void handle_type_req(struct metainfo *meta, struct peer *peer,
         handle_handshake(meta, peer, str, bytes);
         return;
     }
-    printf("Other request\n");
     for (size_t i = 0; i < bytes; i++)
     {
         printf("%02hhX ", str[i]);
@@ -130,8 +130,6 @@ static void handle_type_req(struct metainfo *meta, struct peer *peer,
     void *tmp = str;
     uint32_t *len = tmp;
     switch_events(meta, peer, str, ntohl(*len));
-    printf("length : %d\n", ntohl(*len));
-    printf("type : %d\n", str[4]);
 }
 
 void wait_event_epoll(struct metainfo *meta)
