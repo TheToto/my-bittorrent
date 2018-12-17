@@ -40,9 +40,11 @@ void switch_events(struct metainfo *meta, struct peer *peer, char *str,
     {
 
     case 0:
+        printf("Peer %s id alive !", peer->ip);
         break;//handle timeout
     case 1:
         peer->state = !peer->state;
+        printf("New choked update (%d) of %s !", peer->state, peer->ip);
         break;
 
     case 2:

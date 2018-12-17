@@ -131,9 +131,11 @@ void wait_event_epoll(struct metainfo *meta)
         {
             struct peer *peer = events[i].data.ptr;
             printf("Reading file descriptor '%d' -- ", peer->sockfd);
+            // CHANGER READ POUR RECV
             size_t bytes_read = read(peer->sockfd, read_buffer, READ_SIZE);
             printf("%zd bytes read.\n\n", bytes_read);
-            read_buffer[bytes_read] = '\0';
+            for (size_t i = bytes_read; i < READ_SIZE + 1; i++)
+                read_buffer[i] = '\0';
             handle_type_req(meta, peer, read_buffer, bytes_read);
         }
     }

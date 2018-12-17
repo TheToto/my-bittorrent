@@ -24,6 +24,7 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         if (j % 8 == 0)
             cur = str[j / 8];
     }
+    printf("Bitfield recv from %s !\n", peer->ip);
     request(meta, peer);
 }
 
@@ -34,6 +35,7 @@ void handle_have(uint32_t len, char *str, struct peer *peer)
     void *tmp = str;
     uint32_t *index_p = tmp;
     peer->have[ntohl(*index_p)] = 1;
+    printf("Peer %s have now piece %d !\n", peer->ip, ntohl(*index_p));
 }
 
 void handle_piece(struct metainfo *meta, uint32_t len, char *str,

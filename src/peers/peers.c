@@ -120,7 +120,7 @@ void request(struct metainfo *meta, struct peer *peer)
     }
     if (i == piece->nb_blocks)
     {
-        for (; i < piece->nb_blocks; i++)
+        for (i = 0; i < piece->nb_blocks; i++)
         {
             if (piece->have[i] == 1) //ReAsk missing parts
                 break;
