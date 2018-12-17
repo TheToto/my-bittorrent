@@ -76,15 +76,21 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
     size_t all = size * nmemb;
     struct metainfo *meta = userdata;
 
-    printf("RAW RESPONSE :\n");
-    fwrite(ptr, size, nmemb, stdout);
-    printf("\n");
+    if (meta->verbose)
+    {
+        printf("RAW RESPONSE :\n");
+        fwrite(ptr, size, nmemb, stdout);
+        printf("\n");
+    }
 
     struct be_node *be = be_decode(ptr, all);
     if (!be)
-        printf("FAILED TO DECODE BENCODE\n");
+    {
+        warnx("FAILED TO DECODE BENCODE (announce response)");
+        return all;
+    }
     json_t *json = to_json(be, NULL);
-    dump_json(json);
+    //dump_json(json);
 
     json_t *j_peers = json_object_get(json, "peers");
     const char *peers = json_string_value(j_peers);
@@ -101,7 +107,8 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         char *real_ip = inet_ntoa(*ip);
         int real_port = ntohs(*port);
 
-        printf("%s - %d\n", real_ip, real_port);
+        if (meta->dump_peers)
+            printf("%s:%d\n", real_ip, real_port);
         add_to_peer_list(meta->peers, real_ip, real_port);
         free(peer);
     }
@@ -140,7 +147,8 @@ char *init_tracker(char *url, struct metainfo *meta)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, meta);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
 
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    if (meta->verbose)
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
     //char *res;

@@ -189,24 +189,24 @@ void mktorrent(char *path)
 {
     if (access(path, F_OK) == -1)
         return;
-    struct be_node *root = create_root(path);
+    struct be_node *r = create_root(path);
 
     // Compute hash (a bit ugly)
-    json_t *json = to_json(root, NULL);
-    struct metainfo *meta = create_meta(json);
+    json_t *json = to_json(r, NULL);
+    struct metainfo *meta = create_meta(json, 0, 0);
     free_json(json);
     size_t s;
     char *h = compute_integrity(path, meta, &s);
-    free(root->element.dict[4]->val->element.dict[3]->val->element.str->content);
-    root->element.dict[4]->val->element.dict[3]->val->element.str->content = h;
-    root->element.dict[4]->val->element.dict[3]->val->element.str->length = s;
+    free(r->element.dict[4]->val->element.dict[3]->val->element.str->content);
+    r->element.dict[4]->val->element.dict[3]->val->element.str->content = h;
+    r->element.dict[4]->val->element.dict[3]->val->element.str->length = s;
     free_metainfo(meta);
 
     size_t size;
-    char *enc = be_encode(root, &size);
-    be_free(root);
+    char *enc = be_encode(r, &size);
+    be_free(r);
     if (!enc)
-        return;
+        errx(1, "Can't encode be_node");
 
     char *torrent_path = calloc(strlen(path) + 20, 1);
     strcat(torrent_path, path);
@@ -216,11 +216,9 @@ void mktorrent(char *path)
     FILE *f = fopen(torrent_path, "w");
     free(torrent_path);
     if (!f)
-    {
-        warn("Can't open file %s", path);
-        return;
-    }
+        err(1, "Can't open file %s", path);
     fwrite(enc, sizeof(char), size, f);
     free(enc);
     fclose(f);
+    exit(0);
 }

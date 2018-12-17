@@ -50,7 +50,8 @@ static char *to_web_hex(char *str)
     return buf;
 }
 
-struct metainfo *decode_torrent(char *path, int print)
+struct metainfo *decode_torrent(char *path,
+        int print, int dump_peers, int verbose)
 {
     size_t size;
     char *buf = file_to_string(path, &size);
@@ -74,7 +75,7 @@ struct metainfo *decode_torrent(char *path, int print)
     if (print)
         dump_json(json);
 
-    struct metainfo *meta = create_meta(json);
+    struct metainfo *meta = create_meta(json, dump_peers, verbose);
 
     size_t l_info;
     void *s_info = be_encode(b_info, &l_info);

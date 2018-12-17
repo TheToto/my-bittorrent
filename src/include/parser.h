@@ -14,6 +14,8 @@ struct metainfo
     char *info_hash;        ///< 20 bytes hash of info dict
     char *peer_id;
     struct peer_list *peers;///< The peer list struct
+    int verbose;
+    int dump_peers;
 };
 
 /// List of peers attached to a metainfo struct
@@ -34,10 +36,11 @@ struct peer
 };
 
 /// Convert a torrent path to a metainfo struct
-struct metainfo *decode_torrent(char *path, int print);
+struct metainfo *decode_torrent(char *path,
+        int print, int dump_peers, int verbose);
 
 /// Create metainfo struct from json
-struct metainfo *create_meta(json_t *json);
+struct metainfo *create_meta(json_t *json, int dump_peers, int verbose);
 
 /// Free the metainfo struct
 void *free_metainfo(struct metainfo *meta);

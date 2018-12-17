@@ -112,9 +112,11 @@ static char *get_peerID(void)
     return peer;
 }
 
-struct metainfo *create_meta(json_t *json)
+struct metainfo *create_meta(json_t *json, int dump_peers, int verbose)
 {
     struct metainfo *meta = calloc(1, sizeof(struct metainfo));
+    meta->verbose = verbose;
+    meta->dump_peers = dump_peers;
     meta->peers = init_peer_list();
     meta->peer_id = get_peerID();
 
