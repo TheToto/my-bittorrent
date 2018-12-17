@@ -6,6 +6,8 @@
 * Handling of events in epoll
 */
 
+#include <arpa/inet.h>
+#include <string.h>
 #include "epoll.h"
 
 void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
@@ -23,7 +25,7 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
     }
 }
 
-void handle_have(uint32_t len, char *str, struct peer *peer) 
+void handle_have(uint32_t len, char *str, struct peer *peer)
 {
     if (len != 5)//err
         return;
@@ -43,7 +45,6 @@ void handle_piece(struct metainfo *meta, uint32_t len, char *str,
    tmp = str + 5;
    uint32_t *offset_BE = tmp;
    uint32_t offset = ntohl(*offset_BE);
-   uint32_t f_len = len - 9;
    tmp = str + 9;
    char *piece = tmp;
    memcpy(meta->cur_piece->buf + offset, piece, f_len);

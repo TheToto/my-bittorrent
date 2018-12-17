@@ -99,21 +99,6 @@ static void handle_handshake(struct metainfo *meta, struct peer *peer,
     peer->handshaked = 1;
 }
 
-void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
-        struct peer *peer)
-{
-    char cur = str[0];
-    size_t b_len = (len - 1) * 8;
-    size_t max = b_len - meta->nb_piece;
-    size_t j = 0;
-    for (uint32_t i = b_len; i > max; i--, j++)
-    {
-        peer->have[j] = ((cur >> (b_len - j) & 1));
-        if (j % 8 == 0)
-            cur = str[j / 8];
-    }
-}
-
 static void handle_type_req(struct metainfo *meta, struct peer *peer,
         char *str, size_t bytes)
 {
