@@ -14,6 +14,7 @@
 #include "parser.h"
 #include "tracker.h"
 #include "epoll.h"
+#include "integrity.h"
 
 static char *unfix_info_hash(char *str)
 {
@@ -51,10 +52,34 @@ void handshake(struct metainfo *meta, struct peer *peer)
     printf("Handshake sent to %s !\n", peer->ip);
 }
 
-static char *build_request(struct metainfo *meta)
+static char *build_request(struct piece *piece, size_t i)
 {
+    uint32_t len = htonl(13);
+    uint32_t index = htonl(piece->id_piece);
+    uint32_t begin = htonl(i * 16384);
+    uint32_t length = htonl(16384);
+    if (i == piece->nb_blocks - 1 && piece->piece_size % 16384 != 0)
+        length = htonl(piece->piece_size % 16384);
 
-    return NULL;
+    static char buf[17];
+
+    memcpy(buf, &len, 4);
+    buf[4] = 6;
+    memcpy(buf + 5, &index, 4);
+    memcpy(buf + 9, &begin, 4);
+    memcpy(buf + 13, &length, 4);
+    return buf;
+}
+
+static size_t get_piece_size(struct metainfo *meta, size_t nb)
+{
+    if (nb == meta->nb_piece - 1)
+    {
+        size_t mod = get_total_size(meta) % meta->piece_size;
+        if (mod != 0)
+            return mod;
+    }
+    return meta->piece_size;
 }
 
 void request(struct metainfo *meta, struct peer *peer)
@@ -62,7 +87,32 @@ void request(struct metainfo *meta, struct peer *peer)
     struct piece *piece = meta->cur_piece;
     if (piece->buf == NULL)
     {
-        // INIT PIECE
+        size_t i = 0;
+        for (; i < meta->nb_piece; i++)
+            if (meta->have[i] == 0)
+                break;
+        if (i == meta->nb_piece)
+            errx(0, "Download finised");
+        piece->id_piece = i;
+        piece->piece_size = get_piece_size(meta, i);
+        piece->nb_blocks = piece->piece_size / 16384;
+        if (piece->piece_size % 16384 != 0)
+            piece->nb_blocks += 1;
+        piece->buf = malloc(piece->piece_size * sizeof(char));
+        piece->have = calloc(piece->nb_blocks, sizeof(char));
     }
-    // REQUEST A PIECE
+    size_t i = 0;
+    for (; i < piece->nb_blocks; i++)
+    {
+        if (piece->have[i] == 0)
+            break;
+    }
+    if (i == piece->nb_blocks)
+    {
+        errx(1, "Nope, you are funcking something");
+        return;
+    }
+    send(peer->sockfd, build_request(piece, i), 17, 0);
+    printf("Request piece %ld, block %ld sent to %s !\n", piece->id_piece,
+            i, peer->ip);
 }
