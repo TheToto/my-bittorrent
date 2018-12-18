@@ -39,39 +39,35 @@ void init_epoll(struct peer_list *peers)
     // DO NOT FORGET TO CLOSE THIS FD
 }
 
-void add_peers_to_epoll(struct peer_list *peers)
+void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
 {
-    for (size_t i = 0; i < peers->size; i++)
+    peer->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    struct sockaddr_in serv_addr;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(peer->port);
+    if (inet_pton(AF_INET, peer->ip, &serv_addr.sin_addr) <= 0)
     {
-        struct peer *peer = peers->list[i];
-        peer->sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-        struct sockaddr_in serv_addr;
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(peer->port);
-        if (inet_pton(AF_INET, peer->ip, &serv_addr.sin_addr) <= 0)
-        {
-            warnx("Unsuported IP : %s\n", peer->ip);
-            close(peer->sockfd);
-            peer->sockfd = -1;
-            // REMOVE PEER
-            continue;
-        }
-        if (connect(peer->sockfd, (struct sockaddr *)&serv_addr,
-                    sizeof(serv_addr)) < 0)
-        {
-            warnx("Connect failed : %s\n", peer->ip);
-            close(peer->sockfd);
-            peer->sockfd = -1;
-            // REMOVE PEER
-            continue;
-        }
-
-        struct epoll_event event;
-        event.events = EPOLLIN; // EPOLLIN : read, EPOLLOUT : write
-        event.data.ptr = peer;
-        epoll_ctl(peers->epoll, EPOLL_CTL_ADD, peer->sockfd, &event);
+        warnx("Unsuported IP : %s\n", peer->ip);
+        close(peer->sockfd);
+        peer->sockfd = -1;
+        remove_peers_to_epoll(peers, peer);
+        return;
     }
+    if (connect(peer->sockfd, (struct sockaddr *)&serv_addr,
+                sizeof(serv_addr)) < 0)
+    {
+        warnx("Connect failed : %s\n", peer->ip);
+        close(peer->sockfd);
+        peer->sockfd = -1;
+        remove_peers_to_epoll(peers, peer);
+        return;
+    }
+
+    struct epoll_event event;
+    event.events = EPOLLIN; // EPOLLIN : read, EPOLLOUT : write
+    event.data.ptr = peer;
+    epoll_ctl(peers->epoll, EPOLL_CTL_ADD, peer->sockfd, &event);
 }
 
 void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
@@ -121,6 +117,12 @@ static ssize_t check_size(char *buf, ssize_t size, struct peer *peer)
     if (real_len + 4 <= size)
         return real_len + 4;
     return 0;
+}
+
+static void check_peers(struct metainfo *meta)
+{
+    if (meta->peers->size * 4 <= (meta->peers->initial_nb))
+        init_tracker(meta->announce, meta);
 }
 
 void wait_event_epoll(struct metainfo *meta)
@@ -180,5 +182,6 @@ void wait_event_epoll(struct metainfo *meta)
                 errx(1, "NOOOOOO");
             handle_type_req(meta, peer, read_buffer, bytes_read);
         }
+        check_peers(meta);
     }
 }

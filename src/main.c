@@ -81,14 +81,9 @@ int main(int argc, char **argv)
             printf("File already downloaded\n");
             exit(0);
         }*/
-        init_tracker(meta->announce, meta);
         init_epoll(meta->peers);
-        add_peers_to_epoll(meta->peers);
+        init_tracker(meta->announce, meta);
 
-        for (size_t i = 0; i < meta->peers->size; i++)
-        {
-            handshake(meta, meta->peers->list[i]);
-        }
         wait_event_epoll(meta);
 
         ret = check_integrity(meta); // A bit useless

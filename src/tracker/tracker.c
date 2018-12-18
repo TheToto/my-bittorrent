@@ -19,7 +19,7 @@
 
 #include "parser.h"
 #include "tracker.h"
-
+#include "epoll.h"
 
 static unsigned char *decode_peers(size_t nb, const char *str)
 {
@@ -87,6 +87,8 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     new->have = calloc(meta->nb_piece, sizeof(char));
     peers->list[peers->size] = new;
     peers->size += 1;
+    add_peer_to_epoll(peers, new);
+    handshake(meta, new);
 }
 
 static size_t write_callback(char *ptr, size_t size, size_t nmemb,
@@ -123,6 +125,7 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
             add_to_peer_list(meta, peer);
             free(peer);
         }
+        meta->peers->initial_nb = meta->peers->size;
     }
     be_free(be);
     free_json(json);
