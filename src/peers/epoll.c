@@ -61,12 +61,13 @@ void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
     printf("Nothing to read, we want to remove this peer... %s:%d\n",
             peer->ip, peer->port);
     size_t index = 0;
-    for (; index < peers->size && peers[index] != peer; index++);
+    for (; index < peers->size && peers->list[index] != peer; index++);
     if (index >= peers->size)
         return;
     peers->list[index] = peers->list[peers->size - 1];
     peers->size -= 1;
     peers->list[peers->size] = 0;
+    epoll_ctl(peers->epoll, EPOLL_CTL_DEL, peer->sockfd, NULL);
     free(peer->ip);
     free(peer->have);
     free(peer);
@@ -127,9 +128,8 @@ void wait_event_epoll(struct metainfo *meta)
                 perror("Recv fail");
                 continue;
             }
-            else if (size == 0)
+            else if (bytes_read == 0)
             {
-                printf("Nothing to read, we may want to remove this peer...");
                 remove_peers_to_epoll(meta->peers, peer);
                 continue;
             }
