@@ -79,7 +79,7 @@ static size_t get_piece_size(struct metainfo *meta, size_t nb)
     return meta->piece_size;
 }
 
-void request(struct metainfo *meta, struct peer *peer)
+int request(struct metainfo *meta, struct peer *peer)
 {
     if (peer->state)
         return;
@@ -102,7 +102,9 @@ void request(struct metainfo *meta, struct peer *peer)
                     return; // No complete : Peer have no piece needed
                 }
             }
-            errx(0, "Download finised");
+            if (meta->verbose)
+                printf("Download finished\n");
+            return 0;
         }
         piece->id_piece = i;
         piece->piece_size = get_piece_size(meta, i);
@@ -130,6 +132,7 @@ void request(struct metainfo *meta, struct peer *peer)
     piece->have[i] = 1;
     printf("Request piece %ld, block %ld sent to %s !\n", piece->id_piece,
             i, peer->ip);
+    return 0;
 }
 
 void interested(struct metainfo *meta, struct peer *peer)

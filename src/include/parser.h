@@ -7,6 +7,7 @@
 struct metainfo
 {
     char *announce;         ///< Announce URL (may be empty)
+    int timerfd;            ///< Epoll timer
     char **files;           ///< Array of files paths, NULL terminated array
     size_t *files_size;     ///< Array of files size in bytes
     size_t piece_size;      ///< Size of a piece

@@ -71,15 +71,14 @@ void handle_have(struct metainfo *meta, uint32_t len,
         interested(meta, peer);
 }
 
-static void follow_piece(struct metainfo *meta, struct peer *peer)
+static int follow_piece(struct metainfo *meta, struct peer *peer)
 {
     // Check if piece is complete
     for (size_t i = 0; i < meta->cur_piece->nb_blocks; i++)
     {
         if (meta->cur_piece->have[i] != 2)
         {
-            request(meta, peer);
-            return;
+            return request(meta, peer);
         }
     }
 
@@ -99,10 +98,10 @@ static void follow_piece(struct metainfo *meta, struct peer *peer)
     free(meta->cur_piece->buf);
     free(meta->cur_piece->have);
     meta->cur_piece->buf = NULL;
-    request(meta, peer);
+    return request(meta, peer);
 }
 
-void handle_piece(struct metainfo *meta, uint32_t len, char *str,
+int handle_piece(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
 {
     uint32_t f_len = len - 9;
@@ -120,5 +119,5 @@ void handle_piece(struct metainfo *meta, uint32_t len, char *str,
     printf("Receive piece %d, block %d from %s !",
             ntohl(*id), offset / 16384, peer->ip);
 
-    follow_piece(meta, peer);
+    int res = follow_piece(meta, peer);
 }

@@ -70,9 +70,11 @@ int meta_handling(struct metainfo *meta)
       printf("File already downloaded\n");
       exit(0);
       }*/
-    init_epoll(meta->peers);
+    int timerfd = init_epoll(meta->peers);
     init_tracker(meta->announce, meta);
-
+    meta->timerfd = timerfd;
+    if (timerfd == -1)
+        err(1, "cannot init timer fd");
     wait_event_epoll(meta);
 
     int ret = check_integrity(meta); // A bit useless

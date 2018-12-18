@@ -18,7 +18,7 @@
 #define MAX_EVENTS 500
 #define READ_SIZE 262144
 
-void init_epoll(struct peer_list *peers)
+int init_epoll(struct peer_list *peers)
 {
     peers->epoll = epoll_create1(0);
     int tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
@@ -35,7 +35,7 @@ void init_epoll(struct peer_list *peers)
     new_timer.it_value.tv_sec = 3;
     new_timer.it_value.tv_nsec = 0;
     struct itimerspec old_timer;
-    timerfd_settime (tfd, flags, &new_timer, &old_timer);
+    return timerfd_settime (tfd, flags, &new_timer, &old_timer);
     // DO NOT FORGET TO CLOSE THIS FD
 }
 
