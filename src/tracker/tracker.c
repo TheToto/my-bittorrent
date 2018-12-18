@@ -91,19 +91,8 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     handshake(meta, new);
 }
 
-static size_t write_callback(char *ptr, size_t size, size_t nmemb,
-        void *userdata)
+static void jsoning(char *ptr, size_t all, struct metainfo *meta)
 {
-    size_t all = size * nmemb;
-    struct metainfo *meta = userdata;
-
-    if (meta->verbose)
-    {
-        printf("RAW RESPONSE :\n");
-        fwrite(ptr, size, nmemb, stdout);
-        printf("\n");
-    }
-
     struct be_node *be = be_decode(ptr, all);
     if (!be)
         errx(1, "FAILED TO DECODE BENCODE (announce response)");
@@ -129,6 +118,22 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
     }
     be_free(be);
     free_json(json);
+}
+
+static size_t write_callback(char *ptr, size_t size, size_t nmemb,
+        void *userdata)
+{
+    size_t all = size * nmemb;
+    struct metainfo *meta = userdata;
+
+    if (meta->verbose)
+    {
+        printf("RAW RESPONSE :\n");
+        fwrite(ptr, size, nmemb, stdout);
+        printf("\n");
+    }
+
+    jsoning(ptr, all, meta);
 
     return all;
 }
@@ -139,10 +144,10 @@ size_t read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     return res;
 }
 
-char *init_tracker(char *url, struct metainfo *meta)
+void init_tracker(char *url, struct metainfo *meta)
 {
     if (!url)
-        return NULL;
+        return;
     CURL *curl = curl_easy_init();
     if (!curl)
     {
@@ -164,18 +169,8 @@ char *init_tracker(char *url, struct metainfo *meta)
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
     free(request);
-    if (curl_easy_perform(curl) == CURLE_OK)
-    {
-        curl_easy_cleanup(curl);
-        curl_global_cleanup();
-        return NULL;
-    }
-    else
-    {
+    if (curl_easy_perform(curl) != CURLE_OK)
         warnx("%s", errbuff);
-        curl_easy_cleanup(curl);
-        curl_global_cleanup();
-        return NULL;
-    }
-    return NULL;
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
 }

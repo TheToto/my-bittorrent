@@ -14,6 +14,6 @@
 #define PEER_PORT 6881
 #define COMPACT 1
 
-char *init_tracker(char *url, struct metainfo *meta);
+void init_tracker(char *url, struct metainfo *meta);
 char *get_tracker_request(struct metainfo *meta);
 long get_portL(void);
