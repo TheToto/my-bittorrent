@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     if (meta)
     {
         create_files(meta);
-        /*if (check_integrity(meta))
+        /*if (check_integrity(meta)) //For resuming (But too slow on big files)
         {
             printf("File already downloaded\n");
             exit(0);
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         }
         wait_event_epoll(meta);
 
-        ret = check_integrity(meta);
+        ret = check_integrity(meta); // A bit useless
         free_metainfo(meta);
         if (ret)
             printf("Integrity check : SUCCESS\n");

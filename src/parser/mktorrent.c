@@ -185,22 +185,8 @@ static struct be_node *create_root(char *path)
     return create_dict(root);
 }
 
-void mktorrent(char *path)
+static void create_hash(struct be_node *r, char *path)
 {
-    if (access(path, F_OK) == -1)
-        errx(1, "File/Folder %s dosen't exist", path);
-    char *torrent_path = calloc(strlen(path) + 20, 1);
-    strcat(torrent_path, path);
-    if (torrent_path[strlen(torrent_path) - 1] == '/')
-        torrent_path[strlen(torrent_path) - 1] = '\0';
-    strcat(torrent_path, ".torrent");
-    if (access(torrent_path, F_OK) != -1)
-    {
-        free(torrent_path);
-        errx(1, "File %s.torrent already exist", path);
-    }
-    struct be_node *r = create_root(path);
-
     // Compute hash (a bit ugly)
     json_t *json = to_json(r, NULL);
     struct metainfo *meta = create_meta(json, 0, 0);
@@ -211,6 +197,23 @@ void mktorrent(char *path)
     r->element.dict[4]->val->element.dict[3]->val->element.str->content = h;
     r->element.dict[4]->val->element.dict[3]->val->element.str->length = s;
     free_metainfo(meta);
+}
+
+void mktorrent(char *path)
+{
+    if (access(path, F_OK) == -1)
+        errx(1, "File/Folder %s dosen't exist", path);
+    char *torrent_path = calloc(strlen(path) + 20, 1);
+    strcat(torrent_path, path);
+    strcat(torrent_path, ".torrent");
+    if (access(torrent_path, F_OK) != -1)
+    {
+        free(torrent_path);
+        errx(1, "File %s.torrent already exist", path);
+    }
+    struct be_node *r = create_root(path);
+
+    create_hash(r, path);
 
     size_t size;
     char *enc = be_encode(r, &size);

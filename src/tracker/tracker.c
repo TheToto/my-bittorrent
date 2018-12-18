@@ -55,8 +55,21 @@ static unsigned char *decode_peers(size_t nb, const char *str)
     return peer;
 }
 
-static void add_to_peer_list(struct metainfo *meta, char *ip, int port)
+static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
 {
+    void *tmp = peer;
+    struct in_addr *ip = tmp;
+
+    tmp = peer + 4;
+    uint16_t *port = tmp;
+
+    char *real_ip = inet_ntoa(*ip);
+    int real_port = ntohs(*port);
+
+    if (meta->dump_peers)
+        printf("%s:%d\n", real_ip, real_port);
+
+
     struct peer_list *peers = meta->peers;
     if (peers->size == peers->capacity - 1)
     {
@@ -65,8 +78,8 @@ static void add_to_peer_list(struct metainfo *meta, char *ip, int port)
                 peers->capacity * sizeof(struct peer));
     }
     struct peer *new = malloc(sizeof(struct peer));
-    new->ip = strdup(ip);
-    new->port = port;
+    new->ip = strdup(real_ip);
+    new->port = real_port;
     new->sockfd = -1;
     new->handshaked = 0;
     new->state = 0;
@@ -90,13 +103,9 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
 
     struct be_node *be = be_decode(ptr, all);
     if (!be)
-    {
-        warnx("FAILED TO DECODE BENCODE (announce response)");
-        return all;
-    }
-    json_t *json = to_json(be, NULL);
-    //dump_json(json);
+        errx(1, "FAILED TO DECODE BENCODE (announce response)");
 
+    json_t *json = to_json(be, NULL);
     json_t *j_fail = json_object_get(json, "failure reason");
     if (j_fail)
     {
@@ -110,18 +119,7 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
         unsigned char *peer;
         for (size_t i = 0; i < 10 && (peer = decode_peers(i, peers)); i++)
         {
-            void *tmp = peer;
-            struct in_addr *ip = tmp;
-
-            tmp = peer + 4;
-            uint16_t *port = tmp;
-
-            char *real_ip = inet_ntoa(*ip);
-            int real_port = ntohs(*port);
-
-            if (meta->dump_peers)
-                printf("%s:%d\n", real_ip, real_port);
-            add_to_peer_list(meta, real_ip, real_port);
+            add_to_peer_list(meta, peer);
             free(peer);
         }
     }
@@ -150,12 +148,9 @@ char *init_tracker(char *url, struct metainfo *meta)
     char errbuff[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3);
-    //curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-    //curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
     curl_easy_setopt(curl, CURLOPT_REQUEST_TARGET, request);
-    //curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    //curl_easy_setopt(curl, CURLOPT_READDATA, request);
 
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, meta);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
@@ -164,12 +159,9 @@ char *init_tracker(char *url, struct metainfo *meta)
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
-    //char *res;
     free(request);
     if (curl_easy_perform(curl) == CURLE_OK)
     {
-        //res = strdup(buf);
-
         curl_easy_cleanup(curl);
         curl_global_cleanup();
         return NULL;

@@ -16,23 +16,6 @@
 #define MAX_EVENTS 500
 #define READ_SIZE 262144
 
-static char *unfix_info_hash(char *str)
-{
-    static char hash[20];
-    size_t j = 0;
-    for (size_t i = 0; j < 20; i += 3, j++)
-    {
-        char tmp[3] =
-        {
-            str[i + 1], str[i + 2], '\0'
-        };
-        unsigned int hex;
-        sscanf(tmp, "%02X", &hex);
-        hash[j] = hex;
-    }
-    return hash;
-}
-
 void init_epoll(struct peer_list *peers)
 {
     peers->epoll = epoll_create1(0);
@@ -71,32 +54,6 @@ void add_peers_to_epoll(struct peer_list *peers)
         event.data.ptr = peer;
         epoll_ctl(peers->epoll, EPOLL_CTL_ADD, peer->sockfd, &event);
     }
-}
-
-static void handle_handshake(struct metainfo *meta, struct peer *peer,
-        char *str, int bytes)
-{
-    if (bytes != 49 + str[0])
-    {
-        warnx("Incorrect response (lenght : %d, expected : %d)!\n",
-                bytes, 49 + str[0]);
-        close(peer->sockfd);
-        peer->sockfd = -1;
-        // REMOVE PEER
-        return;
-    }
-    if (memcmp(unfix_info_hash(meta->info_hash),
-                str + str[0] + 9, 20) != 0)
-    {
-        warnx("Incorrect response (hash_info)!\n");
-        close(peer->sockfd);
-        peer->sockfd = -1;
-        // REMOVE PEER
-        return;
-    }
-    printf("Handskake received from %s !\nPeer id : %s\n\n",
-            peer->ip, str + str[0] + 29);
-    peer->handshaked = 1;
 }
 
 static void handle_type_req(struct metainfo *meta, struct peer *peer,

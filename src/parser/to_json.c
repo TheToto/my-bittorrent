@@ -3,31 +3,8 @@
 #include <string.h>
 
 #include "bencode.h"
+#include "misc.h"
 #include "parser.h"
-
-static char *fix_string(char *str, size_t size)
-{
-    char *buf = calloc(size * 6 + 1, sizeof(char));
-    size_t j = 0;
-    for (size_t i = 0; i < size; i++, j++)
-    {
-        if (str[i] < 0x20 || str[i] > 0x7E)
-        {
-            char tmp[10] =
-            {
-                0
-            };
-            sprintf(tmp, "U+00%02hhX", str[i]);
-            strcat(buf, tmp);
-            j += strlen(tmp) - 1;
-        }
-        else
-        {
-            buf[j] = str[i];
-        }
-    }
-    return buf;
-}
 
 static json_t *parse_node(struct be_node *be, struct be_node **info);
 

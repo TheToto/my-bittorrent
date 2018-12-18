@@ -8,8 +8,37 @@
 
 #include <arpa/inet.h>
 #include <string.h>
+#include <err.h>
+#include <unistd.h>
 #include "epoll.h"
+#include "misc.h"
 #include "integrity.h"
+
+void handle_handshake(struct metainfo *meta, struct peer *peer,
+        char *str, int bytes)
+{
+    if (bytes != 49 + str[0])
+    {
+        warnx("Incorrect response (lenght : %d, expected : %d)!\n",
+                bytes, 49 + str[0]);
+        close(peer->sockfd);
+        peer->sockfd = -1;
+        // REMOVE PEER
+        return;
+    }
+    if (memcmp(unfix_info_hash(meta->info_hash),
+                str + str[0] + 9, 20) != 0)
+    {
+        warnx("Incorrect response (hash_info)!\n");
+        close(peer->sockfd);
+        peer->sockfd = -1;
+        // REMOVE PEER
+        return;
+    }
+    printf("Handskake received from %s !\nPeer id : %s\n\n",
+            peer->ip, str + str[0] + 29);
+    peer->handshaked = 1;
+}
 
 void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
@@ -38,6 +67,37 @@ void handle_have(uint32_t len, char *str, struct peer *peer)
     printf("Peer %s have now piece %d !\n", peer->ip, ntohl(*index_p));
 }
 
+static void follow_piece(struct metainfo *meta, struct peer *peer)
+{
+    // Check if piece is complete
+    for (size_t i = 0; i < meta->cur_piece->nb_blocks; i++)
+    {
+        if (meta->cur_piece->have[i] != 2)
+        {
+            request(meta, peer);
+            return;
+        }
+    }
+
+    if (check_piece_string(meta, meta->cur_piece->id_piece,
+                meta->cur_piece->buf, meta->cur_piece->piece_size))
+    {
+        write_piece(meta, meta->cur_piece->buf, meta->cur_piece->id_piece);
+        meta->have[meta->cur_piece->id_piece] = 1;
+        printf("Piece %ld completed !\n", meta->cur_piece->id_piece);
+        // Send have msg
+    }
+    else
+    {
+        printf("Piece %ld failed integrity !\n", meta->cur_piece->id_piece);
+    }
+    // Free for next piece
+    free(meta->cur_piece->buf);
+    free(meta->cur_piece->have);
+    meta->cur_piece->buf = NULL;
+    request(meta, peer);
+}
+
 void handle_piece(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
 {
@@ -56,29 +116,5 @@ void handle_piece(struct metainfo *meta, uint32_t len, char *str,
     printf("Receive piece %d, block %d from %s !",
             ntohl(*id), offset / 16384, peer->ip);
 
-    for (size_t i = 0; i < meta->cur_piece->nb_blocks; i++)
-    {
-        if (meta->cur_piece->have[i] != 2)
-        {
-            request(meta, peer);
-            return;
-        }
-    }
-
-    if (check_piece_string(meta, meta->cur_piece->id_piece,
-                meta->cur_piece->buf, meta->cur_piece->piece_size))
-    {
-        write_piece(meta, meta->cur_piece->buf, meta->cur_piece->id_piece);
-        meta->have[meta->cur_piece->id_piece] = 1;
-        printf("Piece %ld completed !\n", meta->cur_piece->id_piece);
-    }
-    else
-    {
-        printf("Piece %ld failed integrity !\n", meta->cur_piece->id_piece);
-    }
-
-    free(meta->cur_piece->buf);
-    free(meta->cur_piece->have);
-    meta->cur_piece->buf = NULL;
-    request(meta, peer);
+    follow_piece(meta, peer);
 }

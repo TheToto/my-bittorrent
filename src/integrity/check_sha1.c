@@ -10,37 +10,7 @@
 
 #include "parser.h"
 #include "integrity.h"
-
-static void unfix_string(struct metainfo *meta, unsigned char *sha1, size_t nb)
-{
-    char *str = meta->pieces;
-    size_t i = 0;
-    for (size_t k = 0; k < nb * 20; k++, i++) // Go to nb picece hash
-    {
-        if (str[i] == 'U' && str[i + 1] == '+' && str[i + 2] == '0'
-                && str[i + 3] == '0' && str[i + 4] && str[i + 5])
-            i += 5;
-    }
-    for (size_t j = 0; j < 20; i++, j++) // Get piece "nb" hash
-    {
-        if (str[i] == 'U' && str[i + 1] == '+' && str[i + 2] == '0'
-                && str[i + 3] == '0' && str[i + 4] && str[i + 5])
-        {
-            char tmp[3] =
-            {
-                str[i + 4], str[i + 5], '\0'
-            };
-            unsigned int hex;
-            sscanf(tmp, "%02X", &hex);
-            sha1[j] = hex;
-            i += 5;
-        }
-        else
-        {
-            sha1[j] = str[i];
-        }
-    }
-}
+#include "misc.h"
 
 size_t get_total_size(struct metainfo *meta)
 {

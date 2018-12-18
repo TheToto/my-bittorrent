@@ -7,6 +7,10 @@ void init_epoll(struct peer_list *peers);
 void add_peers_to_epoll(struct peer_list *peers);
 void wait_event_epoll(struct metainfo *meta);
 
+/// Handle handshake message
+void handle_handshake(struct metainfo *meta, struct peer *peer,
+        char *str, int bytes);
+
 ///Handling of message ID 5
 void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer);

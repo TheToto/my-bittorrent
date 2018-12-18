@@ -13,6 +13,17 @@
 #include "parser.h"
 #include "integrity.h"
 
+size_t get_size_file(char *path)
+{
+    FILE *f = fopen(path, "rb");
+    if (f == NULL)
+        return 0;
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    fclose(f);
+    return size;
+}
+
 size_t get_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
 {
     size_t start = nb * meta->piece_size;
@@ -87,17 +98,6 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
         }
         fclose(f);
     }
-}
-
-size_t get_size_file(char *path)
-{
-    FILE *f = fopen(path, "rb");
-    if (f == NULL)
-        return 0;
-    fseek(f, 0, SEEK_END);
-    size_t size = ftell(f);
-    fclose(f);
-    return size;
 }
 
 static void rec_mkdir(const char *dir)

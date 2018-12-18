@@ -11,6 +11,7 @@
 #include "bencode.h"
 #include "parser.h"
 #include "integrity.h"
+#include "misc.h"
 
 static char *file_to_string(char *path, size_t *size)
 {
@@ -32,22 +33,22 @@ void dump_json(json_t *json)
     free(s);
 }
 
-static char *to_web_hex(char *str)
+static void compute_info_hash(struct be_node *b_info, struct metainfo *meta)
 {
-    char *buf = calloc(20 * 4 + 1, sizeof(char));
-    size_t j = 0;
-    for (size_t i = 0; i < 20; i++, j++)
-    {
-        char tmp[10] =
-        {
-            0
-        };
-        sprintf(tmp, "%%%02hhx", str[i]);
-        strcat(buf, tmp);
-        j += strlen(tmp) - 1;
-    }
-    free(str);
-    return buf;
+    size_t l_info;
+    void *s_info = be_encode(b_info, &l_info);
+    void *h_info = malloc(20 * sizeof(unsigned char));
+    SHA1(s_info, l_info, h_info);
+    meta->info_hash = to_web_hex(h_info);
+    free(s_info);
+
+    size_t total = get_total_size(meta);
+    size_t nb_piece = total / meta->piece_size;
+    if (total > nb_piece * meta->piece_size)
+        nb_piece++;
+    meta->nb_piece = nb_piece;
+
+    meta->have = calloc(meta->nb_piece, sizeof(char));
 }
 
 struct metainfo *decode_torrent(char *path,
@@ -76,21 +77,7 @@ struct metainfo *decode_torrent(char *path,
         dump_json(json);
 
     struct metainfo *meta = create_meta(json, dump_peers, verbose);
-
-    size_t l_info;
-    void *s_info = be_encode(b_info, &l_info);
-    void *h_info = malloc(20 * sizeof(unsigned char));
-    SHA1(s_info, l_info, h_info);
-    meta->info_hash = to_web_hex(h_info);
-    free(s_info);
-
-    size_t total = get_total_size(meta);
-    size_t nb_piece = total / meta->piece_size;
-    if (total > nb_piece * meta->piece_size)
-        nb_piece++;
-    meta->nb_piece = nb_piece;
-
-    meta->have = calloc(meta->nb_piece, sizeof(char));
+    compute_info_hash(b_info, meta);
 
     free_json(json);
     be_free(be);

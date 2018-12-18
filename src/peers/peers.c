@@ -15,23 +15,7 @@
 #include "tracker.h"
 #include "epoll.h"
 #include "integrity.h"
-
-static char *unfix_info_hash(char *str)
-{
-    static char hash[20];
-    size_t j = 0;
-    for (size_t i = 0; j < 20; i += 3, j++)
-    {
-        char tmp[3] =
-        {
-            str[i + 1], str[i + 2], '\0'
-        };
-        unsigned int hex;
-        sscanf(tmp, "%02X", &hex);
-        hash[j] = hex;
-    }
-    return hash;
-}
+#include "misc.h"
 
 static char *build_handshake(struct metainfo *meta)
 {
