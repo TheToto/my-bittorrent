@@ -28,14 +28,6 @@ static char *build_handshake(struct metainfo *meta)
     return hand;
 }
 
-void handshake(struct metainfo *meta, struct peer *peer)
-{
-    if (peer->sockfd == -1)
-        return;
-    send(peer->sockfd, build_handshake(meta), 68, 0);
-    printf("Handshake sent to %s !\n", peer->ip);
-}
-
 static char *build_request(struct piece *piece, size_t i)
 {
     uint32_t len = htonl(13);
@@ -52,7 +44,28 @@ static char *build_request(struct piece *piece, size_t i)
     memcpy(buf + 5, &index, 4);
     memcpy(buf + 9, &begin, 4);
     memcpy(buf + 13, &length, 4);
+    for (size_t i = 0; i < 17; i++)
+        printf("%02hhx ", buf[i]);
     return buf;
+}
+
+static char *build_interested(void)
+{
+    static char buf[5];
+    uint32_t len = htonl(1);
+
+    memcpy(buf, &len, 4);
+    buf[4] = 2;
+    return buf;
+}
+
+
+void handshake(struct metainfo *meta, struct peer *peer)
+{
+    if (peer->sockfd == -1)
+        return;
+    send(peer->sockfd, build_handshake(meta), 68, 0);
+    printf("Handshake sent to %s !\n", peer->ip);
 }
 
 static size_t get_piece_size(struct metainfo *meta, size_t nb)
@@ -68,6 +81,8 @@ static size_t get_piece_size(struct metainfo *meta, size_t nb)
 
 void request(struct metainfo *meta, struct peer *peer)
 {
+    if (peer->state)
+        return;
     struct piece *piece = meta->cur_piece;
     if (piece->buf == NULL)
     {
@@ -83,6 +98,7 @@ void request(struct metainfo *meta, struct peer *peer)
             {
                 if (meta->have[i] == 0)
                 {
+                    not_interested(peer);
                     return; // No complete : Peer have no piece needed
                 }
             }
@@ -114,4 +130,31 @@ void request(struct metainfo *meta, struct peer *peer)
     piece->have[i] = 1;
     printf("Request piece %ld, block %ld sent to %s !\n", piece->id_piece,
             i, peer->ip);
+}
+
+void interested(struct metainfo *meta, struct peer *peer)
+{
+    size_t i = 0;
+    for (; i < meta->nb_piece; i++)
+    {
+        if (meta->have[i] == 0 && peer->have[i] == 1)
+            break;
+    }
+    if (i == meta->nb_piece)
+    {
+        return;
+    }
+    send(peer->sockfd, build_interested(), 5, 0);
+    peer->interested = 1;
+}
+
+void not_interested(struct peer *peer)
+{
+    static char buf[5];
+    uint32_t len = htonl(1);
+
+    memcpy(buf, &len, 4);
+    buf[4] = 3;
+    send(peer->sockfd, buf, 5, 0);
+    peer->interested = 0;
 }

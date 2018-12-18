@@ -44,7 +44,10 @@ void switch_events(struct metainfo *meta, struct peer *peer, char *str,
         break;//handle timeout
     case 1:
         peer->state = !peer->state;
-        printf("New choked update (%d) of %s !\n", peer->state, peer->ip);
+        printf("New choked update (%s) of %s !\n",
+                peer->state ? "choked" : "unchoked", peer->ip);
+        if (peer->state == 0)
+            request(meta, peer);
         break;
 
     case 2:
@@ -54,7 +57,7 @@ void switch_events(struct metainfo *meta, struct peer *peer, char *str,
         break;
 
     case 4:
-        handle_have(len, str, peer);
+        handle_have(meta, len, str, peer);
         break;
 
     default:

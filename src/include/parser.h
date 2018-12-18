@@ -27,7 +27,7 @@ struct piece
     size_t id_piece;        ///< Index of piece
     size_t piece_size;      ///< Size of the current piece usefull if last
     size_t nb_blocks;       ///< Number of blocks
-    unsigned char *buf;              ///< Buffer of size
+    unsigned char *buf;     ///< Buffer of size
 };
 
 /// List of peers attached to a metainfo struct
@@ -48,6 +48,7 @@ struct peer
     //char *peer_id;        ///< Peer_id of the peer
     char state;             ///< Flag for choking status
     char *have;             ///< Booleans if have index piece
+    char interested;        ///< Has been notified of interest
 };
 
 /// Convert a torrent path to a metainfo struct

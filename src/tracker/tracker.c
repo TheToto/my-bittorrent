@@ -82,7 +82,8 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     new->port = real_port;
     new->sockfd = -1;
     new->handshaked = 0;
-    new->state = 0;
+    new->interested = 0;
+    new->state = 1;
     new->have = calloc(meta->nb_piece, sizeof(char));
     peers->list[peers->size] = new;
     peers->size += 1;

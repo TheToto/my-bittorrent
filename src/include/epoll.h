@@ -16,7 +16,8 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer);
 
 ///Handling have messages
-void handle_have(uint32_t len, char *str, struct peer *peer);
+void handle_have(struct metainfo *meta, uint32_t len,
+        char *str, struct peer *peer);
 
 ///Handling piece messages
 void handle_piece(struct metainfo *meta, uint32_t len, char *str,
@@ -28,3 +29,6 @@ void switch_events(struct metainfo *meta, struct peer *peer, char *str,
 
 /// Send a request to peer
 void request(struct metainfo *meta, struct peer *peer);
+void handshake(struct metainfo *meta, struct peer *peer);
+void interested(struct metainfo *meta, struct peer *peer);
+void not_interested(struct peer *peer);

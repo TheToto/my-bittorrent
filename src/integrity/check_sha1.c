@@ -30,7 +30,6 @@ int check_piece_string(struct metainfo *meta, size_t nb,
 
     unsigned char hash[20];
     SHA1(piece, piece_size, hash); // Compute piece hash
-    free(piece);
     return memcmp(hash, sha1, 20) == 0; // Compare hashs
 }
 
@@ -38,7 +37,9 @@ int check_piece(struct metainfo *meta, size_t nb)
 {
     unsigned char *piece = malloc(meta->piece_size * sizeof(unsigned char));
     size_t size = get_piece(meta, piece, nb);
-    return check_piece_string(meta, nb, piece, size);
+    int ret = check_piece_string(meta, nb, piece, size);
+    free(piece);
+    return ret;
 }
 
 int check_integrity(struct metainfo *meta)

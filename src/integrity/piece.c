@@ -87,15 +87,13 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
             return;
         }
         if (ptr)
-        {
-            lseek(fd, ptr, SEEK_SET);
-            ptr = 0;
-        }
-        for (size_t cur = 0; k < meta->piece_size
+            fseek(f, ptr, SEEK_SET);
+        for (size_t cur = ptr; k < meta->piece_size
                 && cur < meta->files_size[i]; k++, cur++)
         {
             fwrite(piece + k, 1, 1, f);
         }
+        ptr = 0;
         fclose(f);
     }
 }
@@ -140,8 +138,11 @@ void create_files(struct metainfo *meta)
             warn("Cannot open file %s", meta->files[i]);
             return;
         }
-        fseek(f, meta->files_size[i] - 1, SEEK_SET);
-        fwrite(&zero, 1, 1, f);
+        if (meta->files_size[i] != 0)
+        {
+            fseek(f, meta->files_size[i] - 1, SEEK_SET);
+            fwrite(&zero, 1, 1, f);
+        }
         fclose(f);
     }
 }

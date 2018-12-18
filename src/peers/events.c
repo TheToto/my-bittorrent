@@ -54,10 +54,12 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
             cur = str[j / 8];
     }
     printf("Bitfield recv from %s !\n", peer->ip);
-    request(meta, peer);
+    if (!peer->interested)
+        interested(meta, peer);
 }
 
-void handle_have(uint32_t len, char *str, struct peer *peer)
+void handle_have(struct metainfo *meta, uint32_t len,
+        char *str, struct peer *peer)
 {
     if (len != 5)//err
         return;
@@ -65,6 +67,8 @@ void handle_have(uint32_t len, char *str, struct peer *peer)
     uint32_t *index_p = tmp;
     peer->have[ntohl(*index_p)] = 1;
     printf("Peer %s have now piece %d !\n", peer->ip, ntohl(*index_p));
+    if (!peer->interested)
+        interested(meta, peer);
 }
 
 static void follow_piece(struct metainfo *meta, struct peer *peer)
@@ -102,14 +106,14 @@ void handle_piece(struct metainfo *meta, uint32_t len, char *str,
         struct peer *peer)
 {
     uint32_t f_len = len - 9;
-    void *tmp = str + 1;
+    void *tmp = str + 5;
     uint32_t *id = tmp;
     if (meta->cur_piece->id_piece != ntohl(*id))//err
         return;
-    tmp = str + 5;
+    tmp = str + 9;
     uint32_t *offset_BE = tmp;
     uint32_t offset = ntohl(*offset_BE);
-    tmp = str + 9;
+    tmp = str + 13;
     char *piece = tmp;
     memcpy(meta->cur_piece->buf + offset, piece, f_len);
     meta->cur_piece->have[offset / 16384] = 2;
