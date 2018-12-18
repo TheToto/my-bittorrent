@@ -37,6 +37,7 @@ struct peer_list
     size_t size;            ///< The size of the list
     size_t capacity;        ///< The capacity of the list
     int epoll;              ///< Epoll fd
+    int tfd;                ///< Timer fd
 };
 
 struct peer

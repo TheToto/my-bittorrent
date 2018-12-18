@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <sys/epoll.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -8,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/timerfd.h>
 
 #include "parser.h"
 #include "tracker.h"
@@ -19,6 +21,22 @@
 void init_epoll(struct peer_list *peers)
 {
     peers->epoll = epoll_create1(0);
+    int tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
+    struct epoll_event event;
+    event.events = EPOLLIN;
+    event.data.fd = tfd;
+    peers->tfd = tfd;
+    epoll_ctl (peers->epoll, EPOLL_CTL_ADD, tfd, &event);
+
+    int flags = 0;
+    struct itimerspec new_timer;
+    new_timer.it_interval.tv_sec = 3;
+    new_timer.it_interval.tv_nsec = 0;
+    new_timer.it_value.tv_sec = 3;
+    new_timer.it_value.tv_nsec = 0;
+    struct itimerspec old_timer;
+    timerfd_settime (tfd, flags, &new_timer, &old_timer);
+    // DO NOT FORGET TO CLOSE THIS FD
 }
 
 void add_peers_to_epoll(struct peer_list *peers)
@@ -117,6 +135,13 @@ void wait_event_epoll(struct metainfo *meta)
         printf("%d ready events\n", event_count);
         for(int i = 0; i < event_count; i++)
         {
+            if (events[i].data.fd == meta->peers->tfd)
+            {
+                size_t s = 0;
+                read (meta->peers->tfd, &s, sizeof (s));
+                printf("Timer event : %zu !\n", s);
+                continue;
+            }
             struct peer *peer = events[i].data.ptr;
             printf("Reading file descriptor '%d' -- ", peer->sockfd);
 
