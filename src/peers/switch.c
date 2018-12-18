@@ -36,6 +36,7 @@ static void switch_events_next(struct metainfo *meta, struct peer *peer,
 void switch_events(struct metainfo *meta, struct peer *peer, char *str,
         uint32_t len)
 {
+    peer->has_contact = 1;
     switch (str[4])
     {
 

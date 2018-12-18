@@ -161,3 +161,12 @@ void not_interested(struct peer *peer)
     send(peer->sockfd, buf, 5, 0);
     peer->interested = 0;
 }
+
+void keep_alive(struct peer *peer)
+{
+    static char buf[4];
+    uint32_t len = htonl(0);
+
+    memcpy(buf, &len, 4);
+    send(peer->sockfd, buf, 4, 0);
+}

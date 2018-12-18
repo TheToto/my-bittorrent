@@ -52,6 +52,7 @@ struct peer
     char state;             ///< Flag for choking status
     char *have;             ///< Booleans if have index piece
     char interested;        ///< Has been notified of interest
+    char has_contact;       ///< If we receive a request since last timeout
 };
 
 /// Convert a torrent path to a metainfo struct

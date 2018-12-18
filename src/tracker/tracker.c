@@ -84,11 +84,12 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     new->handshaked = 0;
     new->interested = 0;
     new->state = 1;
+    new->has_contact = 0;
     new->have = calloc(meta->nb_piece, sizeof(char));
     peers->list[peers->size] = new;
     peers->size += 1;
-    add_peer_to_epoll(peers, new);
-    handshake(meta, new);
+    if (add_peer_to_epoll(peers, new))
+        handshake(meta, new);
 }
 
 static void jsoning(char *ptr, size_t all, struct metainfo *meta)

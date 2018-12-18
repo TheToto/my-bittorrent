@@ -30,16 +30,16 @@ int init_epoll(struct peer_list *peers)
 
     int flags = 0;
     struct itimerspec new_timer;
-    new_timer.it_interval.tv_sec = 3;
+    new_timer.it_interval.tv_sec = 90;
     new_timer.it_interval.tv_nsec = 0;
-    new_timer.it_value.tv_sec = 3;
+    new_timer.it_value.tv_sec = 90;
     new_timer.it_value.tv_nsec = 0;
     struct itimerspec old_timer;
     return timerfd_settime (tfd, flags, &new_timer, &old_timer);
     // DO NOT FORGET TO CLOSE THIS FD
 }
 
-void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
+char add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
 {
     peer->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -52,7 +52,7 @@ void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
         close(peer->sockfd);
         peer->sockfd = -1;
         remove_peers_to_epoll(peers, peer);
-        return;
+        return 0;
     }
     if (connect(peer->sockfd, (struct sockaddr *)&serv_addr,
                 sizeof(serv_addr)) < 0)
@@ -61,13 +61,14 @@ void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
         close(peer->sockfd);
         peer->sockfd = -1;
         remove_peers_to_epoll(peers, peer);
-        return;
+        return 0;
     }
 
     struct epoll_event event;
     event.events = EPOLLIN; // EPOLLIN : read, EPOLLOUT : write
     event.data.ptr = peer;
     epoll_ctl(peers->epoll, EPOLL_CTL_ADD, peer->sockfd, &event);
+    return 1;
 }
 
 void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
@@ -125,11 +126,33 @@ static void check_peers(struct metainfo *meta)
         init_tracker(meta->announce, meta);
 }
 
+static void handle_timeout(struct metainfo *meta, char time_state)
+{
+    size_t s = 0;
+    read (meta->peers->tfd, &s, sizeof(size_t));
+    printf("Timer event : %zu !\n", s);
+    for (size_t i = 0; i < meta->peers->size; i++)
+    {
+        if (time_state)
+        {
+            if (meta->peers->list[i]->has_contact == 0)
+            {
+                remove_peers_to_epoll(meta->peers, meta->peers->list[i]);
+                i--;
+                continue;
+            }
+            meta->peers->list[i]->has_contact = 0;
+        }
+        keep_alive(meta->peers->list[i]);
+    }
+}
+
 void wait_event_epoll(struct metainfo *meta)
 {
     int event_count;
     char read_buffer[READ_SIZE + 1];
     struct epoll_event events[MAX_EVENTS];
+    char time_state = 0;
     while (1)
     {
         printf("\nWaiting for event...\n");
@@ -139,9 +162,8 @@ void wait_event_epoll(struct metainfo *meta)
         {
             if (events[i].data.fd == meta->peers->tfd)
             {
-                size_t s = 0;
-                read (meta->peers->tfd, &s, sizeof (s));
-                printf("Timer event : %zu !\n", s);
+                handle_timeout(meta, time_state);
+                time_state = !time_state;
                 continue;
             }
             struct peer *peer = events[i].data.ptr;

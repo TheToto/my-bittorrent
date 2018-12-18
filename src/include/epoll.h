@@ -4,7 +4,7 @@
 #include "parser.h"
 
 int init_epoll(struct peer_list *peers);
-void add_peer_to_epoll(struct peer_list *peers, struct peer *peer);
+char add_peer_to_epoll(struct peer_list *peers, struct peer *peer);
 void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer);
 void wait_event_epoll(struct metainfo *meta);
 
@@ -33,3 +33,4 @@ int request(struct metainfo *meta, struct peer *peer);
 void handshake(struct metainfo *meta, struct peer *peer);
 void interested(struct metainfo *meta, struct peer *peer);
 void not_interested(struct peer *peer);
+void keep_alive(struct peer *peer);
