@@ -61,7 +61,7 @@ void handle_have(uint32_t len, char *str, struct peer *peer)
 {
     if (len != 5)//err
         return;
-    void *tmp = str;
+    void *tmp = str + 5;
     uint32_t *index_p = tmp;
     peer->have[ntohl(*index_p)] = 1;
     printf("Peer %s have now piece %d !\n", peer->ip, ntohl(*index_p));
