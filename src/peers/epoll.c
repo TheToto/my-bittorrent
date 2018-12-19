@@ -108,11 +108,6 @@ static int handle_type_req(struct metainfo *meta, struct peer *peer,
         handle_handshake(meta, peer, str, bytes);
         return 1;
     }
-    for (size_t i = 0; i < bytes; i++)
-    {
-        printf("%02hhX ", str[i]);
-    }
-    printf("\n");
     void *tmp = str;
     uint32_t *len = tmp;
     return switch_events(meta, peer, str, ntohl(*len));
@@ -125,8 +120,6 @@ static ssize_t check_size(char *buf, ssize_t size, struct peer *peer)
     void *tmp = buf;
     uint32_t *len = tmp;
     uint32_t real_len = ntohl(*len);
-    printf("%zd bytes read, expedted %u. Type %d\n\n",
-            size, real_len + 4, buf[4]);
     if (real_len + 4 <= size)
         return real_len + 4;
     return 0;
@@ -142,7 +135,6 @@ static void handle_timeout(struct metainfo *meta, char time_state)
 {
     size_t s = 0;
     read (meta->peers->tfd, &s, sizeof(size_t));
-    printf("Timer event : %zu !\n", s);
     for (size_t i = 0; i < meta->peers->size; i++)
     {
         if (time_state)
@@ -168,9 +160,7 @@ void wait_event_epoll(struct metainfo *meta)
     char time_state = 0;
     while (1)
     {
-        printf("\nWaiting for event...\n");
         event_count = epoll_wait(meta->peers->epoll, events, MAX_EVENTS, 30000);
-        printf("%d ready events\n", event_count);
         for(int i = 0; i < event_count; i++)
         {
             if (events[i].data.fd == meta->peers->tfd)
@@ -180,7 +170,6 @@ void wait_event_epoll(struct metainfo *meta)
                 continue;
             }
             struct peer *peer = events[i].data.ptr;
-            printf("Reading file descriptor '%d' -- ", peer->sockfd);
 
             // only peek here to check if download is complete
             ssize_t bytes_read = recv(peer->sockfd, read_buffer,
@@ -202,7 +191,6 @@ void wait_event_epoll(struct metainfo *meta)
             ssize_t to_read = check_size(read_buffer, bytes_read, peer);
             if (to_read == 0)
             {
-                printf("Uncomplete msg...\n");
                 continue;
             }
             // Really take data here
