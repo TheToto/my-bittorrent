@@ -66,10 +66,6 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     char *real_ip = inet_ntoa(*ip);
     int real_port = ntohs(*port);
 
-    if (meta->dump_peers)
-        printf("%s:%d\n", real_ip, real_port);
-
-
     struct peer_list *peers = meta->peers;
     if (peers->size == peers->capacity - 1)
     {
@@ -128,13 +124,6 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb,
 {
     size_t all = size * nmemb;
     struct metainfo *meta = userdata;
-
-    if (meta->verbose)
-    {
-        printf("RAW RESPONSE :\n");
-        fwrite(ptr, size, nmemb, stdout);
-        printf("\n");
-    }
 
     jsoning(ptr, all, meta);
 
