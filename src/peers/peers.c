@@ -60,12 +60,13 @@ static char *build_interested(void)
 }
 
 
-void handshake(struct metainfo *meta, struct peer *peer)
+char handshake(struct metainfo *meta, struct peer *peer)
 {
     if (peer->sockfd == -1)
-        return;
+        return 0;
     send(peer->sockfd, build_handshake(meta), 68, 0);
     printf("Handshake sent to %s !\n", peer->ip);
+    return 1;
 }
 
 static size_t get_piece_size(struct metainfo *meta, size_t nb)
@@ -82,7 +83,7 @@ static size_t get_piece_size(struct metainfo *meta, size_t nb)
 int request(struct metainfo *meta, struct peer *peer)
 {
     if (peer->state)
-        return;
+        return 1;
     struct piece *piece = meta->cur_piece;
     if (piece->buf == NULL)
     {
@@ -99,7 +100,7 @@ int request(struct metainfo *meta, struct peer *peer)
                 if (meta->have[i] == 0)
                 {
                     not_interested(peer);
-                    return; // No complete : Peer have no piece needed
+                    return 1; // No complete : Peer have no piece needed
                 }
             }
             if (meta->verbose)
@@ -132,7 +133,7 @@ int request(struct metainfo *meta, struct peer *peer)
     piece->have[i] = 1;
     printf("Request piece %ld, block %ld sent to %s !\n", piece->id_piece,
             i, peer->ip);
-    return 0;
+    return 1;
 }
 
 void interested(struct metainfo *meta, struct peer *peer)

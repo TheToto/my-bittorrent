@@ -13,6 +13,7 @@
 #include "epoll.h"
 #include "misc.h"
 #include "integrity.h"
+#include "parser.h"
 
 void handle_handshake(struct metainfo *meta, struct peer *peer,
         char *str, int bytes)
@@ -23,7 +24,7 @@ void handle_handshake(struct metainfo *meta, struct peer *peer,
                 bytes, 49 + str[0]);
         close(peer->sockfd);
         peer->sockfd = -1;
-        // REMOVE PEER
+        remove_peers_to_epoll(meta->peers, peer);
         return;
     }
     if (memcmp(unfix_info_hash(meta->info_hash),
@@ -32,7 +33,7 @@ void handle_handshake(struct metainfo *meta, struct peer *peer,
         warnx("Incorrect response (hash_info)!\n");
         close(peer->sockfd);
         peer->sockfd = -1;
-        // REMOVE PEER
+        remove_peers_to_epoll(meta->peers, peer);
         return;
     }
     printf("Handskake received from %s !\nPeer id : %s\n\n",
@@ -108,7 +109,7 @@ int handle_piece(struct metainfo *meta, uint32_t len, char *str,
     void *tmp = str + 5;
     uint32_t *id = tmp;
     if (meta->cur_piece->id_piece != ntohl(*id))//err
-        return;
+        return 0;
     tmp = str + 9;
     uint32_t *offset_BE = tmp;
     uint32_t offset = ntohl(*offset_BE);
@@ -119,5 +120,5 @@ int handle_piece(struct metainfo *meta, uint32_t len, char *str,
     printf("Receive piece %d, block %d from %s !",
             ntohl(*id), offset / 16384, peer->ip);
 
-    int res = follow_piece(meta, peer);
+    return follow_piece(meta, peer);
 }

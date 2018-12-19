@@ -18,7 +18,7 @@
 #define MAX_EVENTS 500
 #define READ_SIZE 262144
 
-int init_epoll(struct peer_list *peers)
+void init_epoll(struct peer_list *peers)
 {
     peers->epoll = epoll_create1(0);
     int tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
@@ -35,7 +35,7 @@ int init_epoll(struct peer_list *peers)
     new_timer.it_value.tv_sec = 3;
     new_timer.it_value.tv_nsec = 0;
     struct itimerspec old_timer;
-    return timerfd_settime (tfd, flags, &new_timer, &old_timer);
+    timerfd_settime (tfd, flags, &new_timer, &old_timer);
     // DO NOT FORGET TO CLOSE THIS FD
 }
 
@@ -72,8 +72,6 @@ void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
 
 void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
 {
-    printf("Nothing to read, we want to remove this peer... %s:%d\n",
-            peer->ip, peer->port);
     size_t index = 0;
     for (; index < peers->size && peers->list[index] != peer; index++);
     if (index >= peers->size)
@@ -87,13 +85,13 @@ void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
     free(peer);
 }
 
-static void handle_type_req(struct metainfo *meta, struct peer *peer,
+static int handle_type_req(struct metainfo *meta, struct peer *peer,
         char *str, size_t bytes)
 {
     if (peer->handshaked == 0)
     {
         handle_handshake(meta, peer, str, bytes);
-        return;
+        return 1;
     }
     for (size_t i = 0; i < bytes; i++)
     {
@@ -102,7 +100,7 @@ static void handle_type_req(struct metainfo *meta, struct peer *peer,
     printf("\n");
     void *tmp = str;
     uint32_t *len = tmp;
-    switch_events(meta, peer, str, ntohl(*len));
+    return switch_events(meta, peer, str, ntohl(*len));
 }
 
 static ssize_t check_size(char *buf, ssize_t size, struct peer *peer)
@@ -180,8 +178,10 @@ void wait_event_epoll(struct metainfo *meta)
                 read_buffer[i] = '\0';
             if (bytes_read != to_read)
                 errx(1, "NOOOOOO");
-            handle_type_req(meta, peer, read_buffer, bytes_read);
+            if (handle_type_req(meta, peer, read_buffer, bytes_read))
+                break;
         }
         check_peers(meta);
     }
+    //FREE function
 }
