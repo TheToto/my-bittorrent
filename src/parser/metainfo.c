@@ -155,7 +155,6 @@ void *free_metainfo(struct metainfo *meta)
         free(meta->peers->list[i]->have);
         free(meta->peers->list[i]);
     }
-    close(meta->timerfd);
     free(meta->peers->list);
     free(meta->peers);
     if (meta->cur_piece->have)

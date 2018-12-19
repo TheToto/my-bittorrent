@@ -33,6 +33,20 @@ void dump_json(json_t *json)
     free(s);
 }
 
+static char *get_torrent_id(char *info_hash)
+{
+    char *temp = calloc(7, sizeof(char));
+    if (!temp)
+        err(1, "get_torrent_id: cannot calloc");
+    temp[0] = info_hash[1];
+    temp[1] = info_hash[2];
+    temp[2] = info_hash[4];
+    temp[3] = info_hash[5];
+    temp[4] = info_hash[7];
+    temp[5] = info_hash[8];
+    return temp;
+}
+
 static void compute_info_hash(struct be_node *b_info, struct metainfo *meta)
 {
     size_t l_info;
@@ -40,6 +54,7 @@ static void compute_info_hash(struct be_node *b_info, struct metainfo *meta)
     void *h_info = malloc(20 * sizeof(unsigned char));
     SHA1(s_info, l_info, h_info);
     meta->info_hash = to_web_hex(h_info);
+    meta->torrent_id = get_torrent_id(meta->info_hash);
     free(s_info);
 
     size_t total = get_total_size(meta);

@@ -33,7 +33,7 @@ static void opt_check_integrity(char *optarg)
 {
     struct metainfo *meta = decode_torrent(optarg, 0, 0, 0);
     int ret = check_integrity(meta);
-    free_metainfo(meta);
+    unleash_void(meta);
     exit(ret == 0);
 }
 
@@ -48,7 +48,7 @@ static int handle_options(int argc, char **argv, int *dump_peers, int *verbose)
             return 1;//OK
         if (c == 'p' || (c == 0 && option_index == 0))
         {
-            free_metainfo(decode_torrent(optarg, 1, 0, 0));
+            unleash_void(decode_torrent(optarg, 1, 0, 0));
             return 0;//EXIT
         }
         else if (c == 'm' || (c == 0 && option_index == 1))
@@ -70,15 +70,16 @@ int meta_handling(struct metainfo *meta)
       printf("File already downloaded\n");
       exit(0);
       }*/
-    int timerfd = init_epoll(meta->peers);
-    init_tracker(meta->announce, meta);
-    meta->timerfd = timerfd;
-    if (timerfd == -1)
-        err(1, "cannot init timer fd");
-    wait_event_epoll(meta);
-
-    int ret = check_integrity(meta); // A bit useless
-    free_metainfo(meta);
+    init_epoll(meta->peers);
+    int ret = 2;
+    if (init_tracker(meta->announce, meta))
+    {
+        if (meta->verbose)
+            printf("%6s: tracker: requesting peers to %s\n", meta->torrent_id,
+                    meta->announce);
+        wait_event_epoll(meta);
+        ret = check_integrity(meta); // A bit useless
+    }
     return ret;
 }
 
@@ -97,10 +98,14 @@ int main(int argc, char **argv)
     struct metainfo *meta = decode_torrent(argv[optind], 0,
             dump_peers, verbose);
     int ret;
-    if (meta && (ret = meta_handling(meta)))
-        printf("Integrity check : SUCCESS\n");
-    else if (meta)
-        printf("Integrity check : FAILED\n");
+    if (meta)
+    {
+        if ((ret = meta_handling(meta)) == 1)
+            printf("Integrity check : SUCCESS\n");
+        else if (ret != 2)
+            printf("Integrity check : FAILED\n");
+        unleash_void(meta);
+    }
     else
         warnx("Failed to decode .torrent file");
     return 0;

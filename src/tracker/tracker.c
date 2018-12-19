@@ -88,8 +88,10 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     new->have = calloc(meta->nb_piece, sizeof(char));
     peers->list[peers->size] = new;
     peers->size += 1;
-    if (add_peer_to_epoll(peers, new))
-        handshake(meta, new);
+    if (add_peer_to_epoll(peers, new, meta->verbose ? meta->torrent_id : NULL))
+        if (!handshake(meta, new))
+            remove_peers_to_epoll(meta->peers, new,
+                    meta->verbose ? meta->torrent_id : NULL);
 }
 
 static void jsoning(char *ptr, size_t all, struct metainfo *meta)
@@ -145,10 +147,10 @@ size_t read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     return res;
 }
 
-void init_tracker(char *url, struct metainfo *meta)
+char init_tracker(char *url, struct metainfo *meta)
 {
     if (!url)
-        return;
+        return 0;
     CURL *curl = curl_easy_init();
     if (!curl)
     {
@@ -165,13 +167,11 @@ void init_tracker(char *url, struct metainfo *meta)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, meta);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
 
-    if (meta->verbose)
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
     free(request);
-    if (curl_easy_perform(curl) != CURLE_OK)
-        warnx("%s", errbuff);
+    int res = curl_easy_perform(curl) == CURLE_OK;
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    return res;
 }

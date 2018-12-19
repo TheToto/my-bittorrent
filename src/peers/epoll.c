@@ -18,7 +18,7 @@
 #define MAX_EVENTS 500
 #define READ_SIZE 262144
 
-int init_epoll(struct peer_list *peers)
+void init_epoll(struct peer_list *peers)
 {
     peers->epoll = epoll_create1(0);
     int tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
@@ -35,11 +35,12 @@ int init_epoll(struct peer_list *peers)
     new_timer.it_value.tv_sec = 90;
     new_timer.it_value.tv_nsec = 0;
     struct itimerspec old_timer;
-    return timerfd_settime (tfd, flags, &new_timer, &old_timer);
+    timerfd_settime (tfd, flags, &new_timer, &old_timer);
     // DO NOT FORGET TO CLOSE THIS FD
 }
 
-char add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
+char add_peer_to_epoll(struct peer_list *peers, struct peer *peer,
+        char *torrent_id)
 {
     peer->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -48,22 +49,31 @@ char add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
     serv_addr.sin_port = htons(peer->port);
     if (inet_pton(AF_INET, peer->ip, &serv_addr.sin_addr) <= 0)
     {
-        warnx("Unsuported IP : %s\n", peer->ip);
+        if (torrent_id)
+            printf("%6s: peers: connect: %s:%d: unsupported IP\n", torrent_id,
+                    peer->ip, peer->port);
         close(peer->sockfd);
         peer->sockfd = -1;
-        remove_peers_to_epoll(peers, peer);
+        remove_peers_to_epoll(peers, peer, NULL);
         return 0;
     }
     if (connect(peer->sockfd, (struct sockaddr *)&serv_addr,
                 sizeof(serv_addr)) < 0)
     {
-        warnx("Connect failed : %s\n", peer->ip);
+        if (torrent_id)
+            printf("%6s: peers: connect: %s:%d: connexion failed\n", torrent_id,
+                    peer->ip, peer->port);
         close(peer->sockfd);
         peer->sockfd = -1;
-        remove_peers_to_epoll(peers, peer);
+        remove_peers_to_epoll(peers, peer, NULL);
         return 0;
     }
+    if (torrent_id)
+    {
+        printf("%6s: peers: connect: %s:%d\n", torrent_id, peer->ip,
+                peer->port);
 
+    }
     struct epoll_event event;
     event.events = EPOLLIN; // EPOLLIN : read, EPOLLOUT : write
     event.data.ptr = peer;
@@ -71,14 +81,16 @@ char add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
     return 1;
 }
 
-void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
+void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer,
+        char *torrent_id)
 {
-    printf("Nothing to read, we want to remove this peer... %s:%d\n",
-            peer->ip, peer->port);
     size_t index = 0;
     for (; index < peers->size && peers->list[index] != peer; index++);
     if (index >= peers->size)
         return;
+    if (torrent_id)
+        printf("%6s: peers: disconnect: %s:%d\n", torrent_id, peer->ip,
+                peer->port);
     peers->list[index] = peers->list[peers->size - 1];
     peers->size -= 1;
     peers->list[peers->size] = 0;
@@ -88,13 +100,13 @@ void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
     free(peer);
 }
 
-static void handle_type_req(struct metainfo *meta, struct peer *peer,
+static int handle_type_req(struct metainfo *meta, struct peer *peer,
         char *str, size_t bytes)
 {
     if (peer->handshaked == 0)
     {
         handle_handshake(meta, peer, str, bytes);
-        return;
+        return 1;
     }
     for (size_t i = 0; i < bytes; i++)
     {
@@ -103,7 +115,7 @@ static void handle_type_req(struct metainfo *meta, struct peer *peer,
     printf("\n");
     void *tmp = str;
     uint32_t *len = tmp;
-    switch_events(meta, peer, str, ntohl(*len));
+    return switch_events(meta, peer, str, ntohl(*len));
 }
 
 static ssize_t check_size(char *buf, ssize_t size, struct peer *peer)
@@ -137,7 +149,8 @@ static void handle_timeout(struct metainfo *meta, char time_state)
         {
             if (meta->peers->list[i]->has_contact == 0)
             {
-                remove_peers_to_epoll(meta->peers, meta->peers->list[i]);
+                remove_peers_to_epoll(meta->peers, meta->peers->list[i],
+                        meta->verbose ? meta->torrent_id : NULL);
                 i--;
                 continue;
             }
@@ -179,7 +192,8 @@ void wait_event_epoll(struct metainfo *meta)
             }
             else if (bytes_read == 0)
             {
-                remove_peers_to_epoll(meta->peers, peer);
+                remove_peers_to_epoll(meta->peers, peer,
+                        meta->verbose ? meta->torrent_id : NULL);
                 continue;
             }
             for (ssize_t i = bytes_read; i < READ_SIZE + 1; i++)
@@ -202,7 +216,8 @@ void wait_event_epoll(struct metainfo *meta)
                 read_buffer[i] = '\0';
             if (bytes_read != to_read)
                 errx(1, "NOOOOOO");
-            handle_type_req(meta, peer, read_buffer, bytes_read);
+            if (!handle_type_req(meta, peer, read_buffer, bytes_read))
+                return;
         }
         check_peers(meta);
     }

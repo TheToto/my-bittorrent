@@ -13,30 +13,38 @@
 #include "epoll.h"
 #include "misc.h"
 #include "integrity.h"
+#include "parser.h"
 
 void handle_handshake(struct metainfo *meta, struct peer *peer,
         char *str, int bytes)
 {
     if (bytes != 49 + str[0])
     {
-        warnx("Incorrect response (lenght : %d, expected : %d)!\n",
-                bytes, 49 + str[0]);
+        if (meta->verbose)
+            printf("%6s: msg: recv: %s:%d: incorrect response\
+                   (lenght : %d, expected : %d)!\n", meta->torrent_id,
+                   peer->ip, peer->port, bytes, 49 + str[0]);
         close(peer->sockfd);
         peer->sockfd = -1;
-        // REMOVE PEER
+        remove_peers_to_epoll(meta->peers, peer,
+                meta->verbose ? meta->torrent_id : NULL);
         return;
     }
     if (memcmp(unfix_info_hash(meta->info_hash),
                 str + str[0] + 9, 20) != 0)
     {
-        warnx("Incorrect response (hash_info)!\n");
+        if (meta->verbose)
+            printf("%6s: msg: recv: %s:%d: incorrect response (hash_info)!\n",
+                    meta->torrent_id, peer->ip, peer->port);
         close(peer->sockfd);
         peer->sockfd = -1;
-        // REMOVE PEER
+        remove_peers_to_epoll(meta->peers, peer,
+                meta->verbose ? meta->torrent_id : NULL);
         return;
     }
-    printf("Handskake received from %s !\nPeer id : %s\n\n",
-            peer->ip, str + str[0] + 29);
+    if (meta->verbose)
+        printf("%6s: msg: recv: %s:%d: handshake\n", meta->torrent_id, peer->ip,
+                peer->port);
     peer->handshaked = 1;
 }
 
@@ -53,7 +61,9 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
         if (j % 8 == 0)
             cur = str[j / 8];
     }
-    printf("Bitfield recv from %s !\n", peer->ip);
+    if (meta->verbose)
+        printf("%6s: msg: recv: %s:%d: bitfield %s\n", meta->torrent_id,
+                peer->ip, peer->port, str);
     if (!peer->interested)
         interested(meta, peer);
 }
@@ -66,7 +76,9 @@ void handle_have(struct metainfo *meta, uint32_t len,
     void *tmp = str + 5;
     uint32_t *index_p = tmp;
     peer->have[ntohl(*index_p)] = 1;
-    printf("Peer %s have now piece %d !\n", peer->ip, ntohl(*index_p));
+    if (meta->verbose)
+        printf("%6s: msg: recv: %s:%d: have %u\n", meta->torrent_id, peer->ip,
+              peer->port, ntohl(*index_p));
     if (!peer->interested)
         interested(meta, peer);
 }
@@ -108,7 +120,7 @@ int handle_piece(struct metainfo *meta, uint32_t len, char *str,
     void *tmp = str + 5;
     uint32_t *id = tmp;
     if (meta->cur_piece->id_piece != ntohl(*id))//err
-        return;
+        return 1;
     tmp = str + 9;
     uint32_t *offset_BE = tmp;
     uint32_t offset = ntohl(*offset_BE);
@@ -116,8 +128,8 @@ int handle_piece(struct metainfo *meta, uint32_t len, char *str,
     char *piece = tmp;
     memcpy(meta->cur_piece->buf + offset, piece, f_len);
     meta->cur_piece->have[offset / 16384] = 2;
-    printf("Receive piece %d, block %d from %s !",
-            ntohl(*id), offset / 16384, peer->ip);
-
-    int res = follow_piece(meta, peer);
+    if (meta->verbose)
+        printf("%6s: msd: recv: %s:%d: piece %u %u", meta->torrent_id,
+                peer->ip, peer->port, ntohl(*id), offset);
+    return follow_piece(meta, peer);
 }
