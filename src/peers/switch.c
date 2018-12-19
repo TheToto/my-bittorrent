@@ -23,8 +23,7 @@ static int switch_events_next(struct metainfo *meta, struct peer *peer,
         return 1;
 
     case 7:
-        handle_piece(meta, len, str, peer);
-        return 1;
+        return handle_piece(meta, len, str, peer);
 
     case 8:
         return 1;

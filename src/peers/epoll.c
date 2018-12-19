@@ -178,10 +178,9 @@ void wait_event_epoll(struct metainfo *meta)
                 read_buffer[i] = '\0';
             if (bytes_read != to_read)
                 errx(1, "NOOOOOO");
-            if (handle_type_req(meta, peer, read_buffer, bytes_read))
-                break;
+            if (!handle_type_req(meta, peer, read_buffer, bytes_read))
+                return;
         }
         check_peers(meta);
     }
-    unleash_void(meta);
 }

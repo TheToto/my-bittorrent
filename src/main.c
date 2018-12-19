@@ -100,6 +100,7 @@ int main(int argc, char **argv)
             printf("Integrity check : SUCCESS\n");
         else
             printf("Integrity check : FAILED\n");
+        unleash_void(meta);
     }
     else
         warnx("Failed to decode .torrent file");
