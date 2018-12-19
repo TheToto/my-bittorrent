@@ -30,8 +30,8 @@ static int switch_events_next(struct metainfo *meta, struct peer *peer,
 
     default:
         if (meta->verbose)
-            warnx("%6s: msg: recv: %s:%d: unknow request: %c", meta->torrent_id,
-                    peer->ip, peer->port, str[4]);
+            printf("%6s: msg: recv: %s:%d: unknow request: %c",
+                    meta->torrent_id, peer->ip, peer->port, str[4]);
         remove_peers_to_epoll(meta->peers, peer,
                 meta->verbose ? meta->torrent_id : NULL);
         return 1;
@@ -47,7 +47,9 @@ int switch_events(struct metainfo *meta, struct peer *peer, char *str,
     {
 
     case 0:
-        printf("Peer %s id alive !\n", peer->ip);
+        if (meta->verbose)
+            printf("%6s: msg: recv: %s:%d: alive\n", meta->torrent_id, peer->ip,
+                    peer->port);
         return 1;//handle timeout
     case 1:
         peer->state = !peer->state;
