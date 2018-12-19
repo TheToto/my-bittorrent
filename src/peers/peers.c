@@ -65,7 +65,9 @@ char handshake(struct metainfo *meta, struct peer *peer)
     if (peer->sockfd == -1)
         return 0;
     send(peer->sockfd, build_handshake(meta), 68, 0);
-    printf("Handshake sent to %s !\n", peer->ip);
+    if (meta->verbose)
+        printf("%6s: msg: send: %s:%d: handshake\n", meta->torrent_id, peer->ip,
+                peer->port);
     return 1;
 }
 
@@ -150,6 +152,9 @@ void interested(struct metainfo *meta, struct peer *peer)
     }
     send(peer->sockfd, build_interested(), 5, 0);
     peer->interested = 1;
+    if (meta->verbose)
+        printf("%6s: msg: send: %s:%d: interested", meta->torrent_id, peer->ip,
+                peer->port);
 }
 
 void not_interested(struct peer *peer)

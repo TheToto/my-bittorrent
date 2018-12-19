@@ -29,8 +29,11 @@ static int switch_events_next(struct metainfo *meta, struct peer *peer,
         return 1;
 
     default:
-        warnx("Unknow request: %c", str[4]);
-        remove_peers_to_epoll(meta->peers, peer);
+        if (meta->verbose)
+            warnx("%6s: msg: recv: %s:%d: unknow request: %c", meta->torrent_id,
+                    peer->ip, peer->port, str[4]);
+        remove_peers_to_epoll(meta->peers, peer,
+                meta->verbose ? meta->torrent_id : NULL);
         return 1;
     }
     return 1;
@@ -47,8 +50,9 @@ int switch_events(struct metainfo *meta, struct peer *peer, char *str,
         return 1;//handle timeout
     case 1:
         peer->state = !peer->state;
-        printf("New choked update (%s) of %s !\n",
-                peer->state ? "choked" : "unchoked", peer->ip);
+        if (meta->verbose)
+            printf("%6s: msg: recv: %s:%d: %s\n", meta->torrent_id, peer->ip,
+                  peer->port, peer->state ? "choke" : "unchoke");
         if (peer->state == 0)
             return request(meta, peer);
         return 1;

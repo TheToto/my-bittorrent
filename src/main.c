@@ -74,6 +74,9 @@ int meta_handling(struct metainfo *meta)
     int ret = 2;
     if (init_tracker(meta->announce, meta))
     {
+        if (meta->verbose)
+            printf("%6s: tracker: requesting peers to %s\n", meta->torrent_id,
+                    meta->announce);
         wait_event_epoll(meta);
         ret = check_integrity(meta); // A bit useless
     }

@@ -4,8 +4,10 @@
 #include "parser.h"
 
 void init_epoll(struct peer_list *peers);
-void add_peer_to_epoll(struct peer_list *peers, struct peer *peer);
-void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer);
+void add_peer_to_epoll(struct peer_list *peers, struct peer *peer,
+        char *torrent_id);
+void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer,
+        char *torrent_id);
 void wait_event_epoll(struct metainfo *meta);
 
 /// Handle handshake message

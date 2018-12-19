@@ -11,13 +11,13 @@
 #include "parser.h"
 #include "epoll.h"
 
-static void unleash_peers(struct peer_list *peers)
+static void unleash_peers(struct peer_list *peers, char *torrent_id)
 {
     if (!peers)
         return;
     size_t max = peers->size;
     for (size_t i = 0; i < max; i++)
-        remove_peers_to_epoll(peers, peers->list[0]);
+        remove_peers_to_epoll(peers, peers->list[0], torrent_id);
     free(peers->list);
     close(peers->tfd);
     close(peers->epoll);
@@ -46,10 +46,11 @@ void unleash_void(struct metainfo *meta)
 {
    if (!meta)
        return;
-   unleash_peers(meta->peers);
+   unleash_peers(meta->peers, meta->torrent_id);
    unleash_files(meta->files);
    clear_piece(meta->cur_piece);
    free(meta->announce);
+   free(meta->torrent_id);
    free(meta->peer_id);
    free(meta->files_size);
    free(meta->pieces);

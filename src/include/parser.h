@@ -9,6 +9,7 @@ struct metainfo
     char *announce;         ///< Announce URL (may be empty)
     char **files;           ///< Array of files paths, NULL terminated array
     size_t *files_size;     ///< Array of files size in bytes
+    char *torrent_id;       ///< Torrent ID for verbose
     size_t piece_size;      ///< Size of a piece
     size_t nb_piece;        ///< Number of pieces
     char *pieces;           ///< SHA1 hashs (20 bytes for each piece)

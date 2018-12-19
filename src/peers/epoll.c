@@ -39,7 +39,8 @@ void init_epoll(struct peer_list *peers)
     // DO NOT FORGET TO CLOSE THIS FD
 }
 
-void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
+void add_peer_to_epoll(struct peer_list *peers, struct peer *peer,
+        char *torrent_id)
 {
     peer->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -48,34 +49,47 @@ void add_peer_to_epoll(struct peer_list *peers, struct peer *peer)
     serv_addr.sin_port = htons(peer->port);
     if (inet_pton(AF_INET, peer->ip, &serv_addr.sin_addr) <= 0)
     {
-        warnx("Unsuported IP : %s\n", peer->ip);
+        if (torrent_id)
+            printf("%6s: peers: connect: %s:%d: unsupported IP\n", torrent_id,
+                    peer->ip, peer->port);
         close(peer->sockfd);
         peer->sockfd = -1;
-        remove_peers_to_epoll(peers, peer);
+        remove_peers_to_epoll(peers, peer, NULL);
         return;
     }
     if (connect(peer->sockfd, (struct sockaddr *)&serv_addr,
                 sizeof(serv_addr)) < 0)
     {
-        warnx("Connect failed : %s\n", peer->ip);
+        if (torrent_id)
+            printf("%6s: peers: connect: %s:%d: connexion failed\n", torrent_id,
+                    peer->ip, peer->port);
         close(peer->sockfd);
         peer->sockfd = -1;
-        remove_peers_to_epoll(peers, peer);
+        remove_peers_to_epoll(peers, peer, NULL);
         return;
     }
+    if (torrent_id)
+    {
+        printf("%6s: peers: connect: %s:%d\n", torrent_id, peer->ip,
+                peer->port);
 
+    }
     struct epoll_event event;
     event.events = EPOLLIN; // EPOLLIN : read, EPOLLOUT : write
     event.data.ptr = peer;
     epoll_ctl(peers->epoll, EPOLL_CTL_ADD, peer->sockfd, &event);
 }
 
-void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer)
+void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer,
+        char *torrent_id)
 {
     size_t index = 0;
     for (; index < peers->size && peers->list[index] != peer; index++);
     if (index >= peers->size)
         return;
+    if (torrent_id)
+        printf("%6s: peers: disconnect: %s:%d\n", torrent_id, peer->ip,
+                peer->port);
     peers->list[index] = peers->list[peers->size - 1];
     peers->size -= 1;
     peers->list[peers->size] = 0;
@@ -155,7 +169,7 @@ void wait_event_epoll(struct metainfo *meta)
             }
             else if (bytes_read == 0)
             {
-                remove_peers_to_epoll(meta->peers, peer);
+                remove_peers_to_epoll(meta->peers, peer, meta->torrent_id);
                 continue;
             }
             for (ssize_t i = bytes_read; i < READ_SIZE + 1; i++)
