@@ -28,11 +28,13 @@ static char *build_handshake(struct metainfo *meta)
     return hand;
 }
 
-static char *build_request(struct piece *piece, size_t i)
+static char *build_request(struct piece *piece, size_t i, struct peer *peer,
+        struct metainfo *meta)
 {
     uint32_t len = htonl(13);
     uint32_t index = htonl(piece->id_piece);
-    uint32_t begin = htonl(i * 16384);
+    uint32_t begin_p = i * 16384;
+    uint32_t begin = htonl(begin_p);
     uint32_t length = htonl(16384);
     if (i == piece->nb_blocks - 1 && piece->piece_size % 16384 != 0)
         length = htonl(piece->piece_size % 16384);
@@ -44,8 +46,10 @@ static char *build_request(struct piece *piece, size_t i)
     memcpy(buf + 5, &index, 4);
     memcpy(buf + 9, &begin, 4);
     memcpy(buf + 13, &length, 4);
-    for (size_t i = 0; i < 17; i++)
-        printf("%02hhx ", buf[i]);
+    if (meta->verbose)
+        printf("%6s: msg: send: %s:%d: request %ld %d %d\n", meta->torrent_id,
+                peer->ip, peer->port, piece->id_piece, begin_p, ntohl(length));
+
     return buf;
 }
 
@@ -105,8 +109,6 @@ int request(struct metainfo *meta, struct peer *peer)
                     return 1; // No complete : Peer have no piece needed
                 }
             }
-            if (meta->verbose)
-                printf("Download finished\n");
             return 0;
         }
         piece->id_piece = i;
@@ -131,10 +133,8 @@ int request(struct metainfo *meta, struct peer *peer)
                 break;
         }
     }
-    send(peer->sockfd, build_request(piece, i), 17, 0);
+    send(peer->sockfd, build_request(piece, i, peer, meta), 17, 0);
     piece->have[i] = 1;
-    printf("Request piece %ld, block %ld sent to %s !\n", piece->id_piece,
-            i, peer->ip);
     return 1;
 }
 
@@ -153,8 +153,8 @@ void interested(struct metainfo *meta, struct peer *peer)
     send(peer->sockfd, build_interested(), 5, 0);
     peer->interested = 1;
     if (meta->verbose)
-        printf("%6s: msg: send: %s:%d: interested", meta->torrent_id, peer->ip,
-                peer->port);
+        printf("%6s: msg: send: %s:%d: interested\n", meta->torrent_id,
+                peer->ip, peer->port);
 }
 
 void not_interested(struct peer *peer)

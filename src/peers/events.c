@@ -55,17 +55,23 @@ void handle_bfill(struct metainfo *meta, uint32_t len, char *str,
     size_t b_len = (len - 1) * 8;
     size_t max = b_len - meta->nb_piece;
     size_t j = 0;
+    char *bitfield = NULL;
+    if (meta->verbose)
+        bitfield = calloc(meta->nb_piece + 1, sizeof(char));
     for (uint32_t i = b_len; i > max; i--, j++)
     {
         peer->have[j] = ((cur >> (b_len - j) & 1));
+        if (meta->verbose)
+            bitfield[j] = peer->have[j] + '0';
         if (j % 8 == 0)
             cur = str[j / 8];
     }
     if (meta->verbose)
         printf("%6s: msg: recv: %s:%d: bitfield %s\n", meta->torrent_id,
-                peer->ip, peer->port, str);
+                peer->ip, peer->port, bitfield);
     if (!peer->interested)
         interested(meta, peer);
+    free(bitfield);
 }
 
 void handle_have(struct metainfo *meta, uint32_t len,
@@ -99,12 +105,7 @@ static int follow_piece(struct metainfo *meta, struct peer *peer)
     {
         write_piece(meta, meta->cur_piece->buf, meta->cur_piece->id_piece);
         meta->have[meta->cur_piece->id_piece] = 1;
-        printf("Piece %ld completed !\n", meta->cur_piece->id_piece);
         // Send have msg
-    }
-    else
-    {
-        printf("Piece %ld failed integrity !\n", meta->cur_piece->id_piece);
     }
     // Free for next piece
     free(meta->cur_piece->buf);
@@ -129,7 +130,7 @@ int handle_piece(struct metainfo *meta, uint32_t len, char *str,
     memcpy(meta->cur_piece->buf + offset, piece, f_len);
     meta->cur_piece->have[offset / 16384] = 2;
     if (meta->verbose)
-        printf("%6s: msd: recv: %s:%d: piece %u %u", meta->torrent_id,
+        printf("%6s: msg: recv: %s:%d: piece %u %u\n", meta->torrent_id,
                 peer->ip, peer->port, ntohl(*id), offset);
     return follow_piece(meta, peer);
 }
