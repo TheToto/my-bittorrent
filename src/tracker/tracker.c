@@ -85,12 +85,11 @@ static void add_to_peer_list(struct metainfo *meta, unsigned char *peer)
     new->interested = 0;
     new->state = 1;
     new->have = calloc(meta->nb_piece, sizeof(char));
-    if (!handshake(meta, new))
-        //return destroy_peer(new);
     peers->list[peers->size] = new;
     peers->size += 1;
     add_peer_to_epoll(peers, new);
-
+    if (!handshake(meta, new))
+        remove_peers_to_epoll(meta->peers, new);
 }
 
 static void jsoning(char *ptr, size_t all, struct metainfo *meta)
