@@ -183,5 +183,5 @@ void wait_event_epoll(struct metainfo *meta)
         }
         check_peers(meta);
     }
-    //FREE function
+    unleash_void(meta);
 }

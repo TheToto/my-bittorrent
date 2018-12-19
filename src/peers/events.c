@@ -109,7 +109,7 @@ int handle_piece(struct metainfo *meta, uint32_t len, char *str,
     void *tmp = str + 5;
     uint32_t *id = tmp;
     if (meta->cur_piece->id_piece != ntohl(*id))//err
-        return 0;
+        return 1;
     tmp = str + 9;
     uint32_t *offset_BE = tmp;
     uint32_t offset = ntohl(*offset_BE);

@@ -74,3 +74,6 @@ void free_json(json_t *json);
 
 /// mktorrent fonction (path can be file or directory)
 void mktorrent(char *path);
+
+///free all structures and close all fd
+void unleash_void(struct metainfo *meta);
