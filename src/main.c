@@ -71,11 +71,12 @@ int meta_handling(struct metainfo *meta)
       exit(0);
       }*/
     init_epoll(meta->peers);
-    init_tracker(meta->announce, meta);
-    wait_event_epoll(meta);
-
-    int ret = check_integrity(meta); // A bit useless
-    unleash_void(meta);
+    int ret = 2;
+    if (init_tracker(meta->announce, meta))
+    {
+        wait_event_epoll(meta);
+        ret = check_integrity(meta); // A bit useless
+    }
     return ret;
 }
 
@@ -96,9 +97,9 @@ int main(int argc, char **argv)
     int ret;
     if (meta)
     {
-        if ((ret = meta_handling(meta)))
+        if ((ret = meta_handling(meta)) == 1)
             printf("Integrity check : SUCCESS\n");
-        else
+        else if (ret != 2)
             printf("Integrity check : FAILED\n");
         unleash_void(meta);
     }

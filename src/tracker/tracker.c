@@ -145,10 +145,10 @@ size_t read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
     return res;
 }
 
-void init_tracker(char *url, struct metainfo *meta)
+char init_tracker(char *url, struct metainfo *meta)
 {
     if (!url)
-        return;
+        return 0;
     CURL *curl = curl_easy_init();
     if (!curl)
     {
@@ -170,8 +170,8 @@ void init_tracker(char *url, struct metainfo *meta)
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errbuff);
 
     free(request);
-    if (curl_easy_perform(curl) != CURLE_OK)
-        warnx("%s", errbuff);
+    int res = curl_easy_perform(curl) == CURLE_OK;
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    return res;
 }
