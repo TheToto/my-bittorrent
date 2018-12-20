@@ -120,6 +120,7 @@ static int init_request(struct metainfo *meta, struct peer *peer)
         if (cur_p->have[i] && !cur_p->interested)
             interested(meta, cur_p);
     }
+    request(meta, peer);
     return 1;
 }
 
@@ -151,7 +152,7 @@ int request(struct metainfo *meta, struct peer *peer)
     }
     send(peer->sockfd, build_request(piece, i, peer, meta), 17, 0);
     piece->have[i] = 1;
-    return 0;
+    return 1;
 }
 
 void interested(struct metainfo *meta, struct peer *peer)
