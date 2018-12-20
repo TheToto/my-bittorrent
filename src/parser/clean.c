@@ -47,7 +47,7 @@ void unleash_void(struct metainfo *meta)
 {
    if (!meta)
        return;
-   unleash_peers(meta->peers, meta->torrent_id);
+   unleash_peers(meta->peers, meta->verbose ? meta->torrent_id : NULL);
    unleash_files(meta->files);
    clear_piece(meta->cur_piece);
    free(meta->announce);
