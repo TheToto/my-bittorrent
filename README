@@ -1,0 +1,29 @@
+___  ___       ______ _ _ _____                         _
+|  \/  |       | ___ (_) |_   _|                       | |
+| .  . |_   _  | |_/ /_| |_| | ___  _ __ _ __ ___ _ __ | |_
+| |\/| | | | | | ___ \ | __| |/ _ \| '__| '__/ _ \ '_ \| __|
+| |  | | |_| | | |_/ / | |_| | (_) | |  | | |  __/ | | | |_
+\_|  |_/\__, | \____/|_|\__\_/\___/|_|  |_|  \___|_| |_|\__|
+         __/ |
+        |___/
+
+Compilation :
+    $ cd $(mktemp -d)
+    $ cmake /path/to/my-bittorrent
+    $ make
+
+Execution :
+    $ ./my-bittorrent [-pdvc] /path/to/torrent
+
+It will download your torrent to the current working directory
+
+Options :
+    -d : my-bittorrent will print IP and port of peers
+    -p : my-bittorrent will print JSON representation of .torrent file and exit
+    -v : my-bittorrent will print a lot of logs
+    -c : my-bittorrent will check integrity of torrent and return 0 if the
+         download is complete, 1 otherwise
+
+Advanced features :
+    my-bittorrent can resume a download. It will check how many piece is
+    already downloaded before starting download.
