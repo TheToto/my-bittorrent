@@ -30,9 +30,9 @@ void init_epoll(struct peer_list *peers)
 
     int flags = 0;
     struct itimerspec new_timer;
-    new_timer.it_interval.tv_sec = 90;
+    new_timer.it_interval.tv_sec = 60;
     new_timer.it_interval.tv_nsec = 0;
-    new_timer.it_value.tv_sec = 90;
+    new_timer.it_value.tv_sec = 60;
     new_timer.it_value.tv_nsec = 0;
     struct itimerspec old_timer;
     timerfd_settime (tfd, flags, &new_timer, &old_timer);

@@ -48,8 +48,11 @@ static int handle_options(int argc, char **argv, int *dump_peers, int *verbose)
             return 1;//OK
         if (c == 'p' || (c == 0 && option_index == 0))
         {
-            unleash_void(decode_torrent(optarg, 1, 0, 0));
-            return 0;//EXIT
+            struct metainfo *meta = decode_torrent(optarg, 1, 0, 0);
+            if (!meta)
+                exit(1);
+            unleash_void(meta);
+            exit(0);
         }
         else if (c == 'm' || (c == 0 && option_index == 1))
             mktorrent(optarg);
@@ -62,23 +65,38 @@ static int handle_options(int argc, char **argv, int *dump_peers, int *verbose)
     }
 }
 
+static void print_resume(struct metainfo *meta)
+{
+    size_t acu = 0;
+    for (size_t i = 0; i < meta->nb_piece; i++)
+    {
+        if (meta->have[i])
+            acu++;
+    }
+    if (acu != 0)
+    {
+        printf("%6s: resumed from %zu/%zu\n", meta->torrent_id,
+                acu, meta->nb_piece);
+    }
+}
+
 int meta_handling(struct metainfo *meta)
 {
     create_files(meta);
-    /*if (check_integrity(meta)) //For resuming (But too slow on big files)
-      {
-      printf("File already downloaded\n");
-      exit(0);
-      }*/
+    if (check_integrity(meta)) //For resuming (But too slow on big files)
+    {
+        printf("%6s: torrent is already complete\n", meta->torrent_id);
+        exit(0);
+    }
+    print_resume(meta);
     init_epoll(meta->peers);
-    int ret = 2;
-    if (init_tracker(meta->announce, meta))
+    int ret;
+    if ((ret = init_tracker(meta->announce, meta)))
     {
         if (meta->verbose)
             printf("%6s: tracker: requesting peers to %s\n", meta->torrent_id,
                     meta->announce);
         wait_event_epoll(meta);
-        ret = check_integrity(meta); // A bit useless
     }
     return ret;
 }
@@ -86,27 +104,23 @@ int meta_handling(struct metainfo *meta)
 int main(int argc, char **argv)
 {
     if (argc <= 1)
-    {
-        fprintf(stderr,
-                "my-bittorrent: Usage: %s [options] [files]\n", argv[0]);
-        return 1;
-    }
+        errx(1, "Usage: %s [options] [files]\n", argv[0]);
+
     int verbose = 0;
     int dump_peers = 0;
     if (!handle_options(argc, argv, &dump_peers, &verbose))
         return 0;
     struct metainfo *meta = decode_torrent(argv[optind], 0,
             dump_peers, verbose);
-    int ret;
+    int ret = 1;
     if (meta)
     {
-        if ((ret = meta_handling(meta)) == 1)
-            printf("Integrity check : SUCCESS\n");
-        else if (ret != 2)
-            printf("Integrity check : FAILED\n");
+        ret = meta_handling(meta);
         unleash_void(meta);
     }
     else
         warnx("Failed to decode .torrent file");
-    return 0;
+    if (ret)
+        return 0;
+    return 1;
 }
