@@ -110,6 +110,7 @@ static int follow_piece(struct metainfo *meta, struct peer *peer)
     // Free for next piece
     free(meta->cur_piece->buf);
     free(meta->cur_piece->have);
+    meta->cur_piece->have = NULL;
     meta->cur_piece->buf = NULL;
     return request(meta, peer);
 }
