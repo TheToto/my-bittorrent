@@ -1,3 +1,12 @@
+/**
+* @file parser.h
+* @author thomas.lupin
+* @version 0.1
+* @date 13-12-2018
+* Header of parsing functions
+*/
+
+
 #pragma once
 
 #include <jansson.h>
@@ -17,11 +26,12 @@ struct metainfo
     char *info_hash;        ///< 20 bytes hash of info dict
     char *peer_id;          ///< Peer id of the client
     struct peer_list *peers;///< The peer list struct
-    char verbose;
-    char dump_peers;
+    char verbose;           ///< Bool if verbose is on
+    char dump_peers;        ///< Bool if -d is on
     struct piece *cur_piece;///< Current download
 };
 
+/// Struct of current piece download
 struct piece
 {
     char *have;             ///< 0 if we have block id, size = piece_size/16KB
@@ -42,13 +52,13 @@ struct peer_list
     int tfd;                ///< Timer fd
 };
 
+/// Struct of a peer in the peer list
 struct peer
 {
     char *ip;               ///< Ip of the peer
     int port;               ///< Port of the peer
     int sockfd;             ///< FD of socket
-    char handshaked;
-    //char *peer_id;        ///< Peer_id of the peer
+    char handshaked;        ///< Bool if the peer has handshaked
     char state;             ///< Flag for choking status
     char *have;             ///< Booleans if have index piece
     char interested;        ///< Has been notified of interest

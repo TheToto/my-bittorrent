@@ -14,6 +14,8 @@
 #define PEER_PORT 6881
 #define COMPACT 1
 
+/// Get peers from tracker
 char init_tracker(char *url, struct metainfo *meta);
+
+/// Build HTTP tracker request
 char *get_tracker_request(struct metainfo *meta);
-long get_portL(void);

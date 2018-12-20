@@ -1,3 +1,11 @@
+/**
+* @file integrity.h
+* @author thomas.lupin
+* @version 0.1
+* @date 13-12-2018
+* Header of integrity functions
+*/
+
 #pragma once
 
 #include "parser.h"

@@ -9,3 +9,4 @@ file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.c")
 
 add_executable(my-bittorrent ${SOURCES})
 target_link_libraries(my-bittorrent "${CMAKE_SOURCE_DIR}/lib/libbencode.a")
+add_custom_target(doc "doxygen" "${CMAKE_SOURCE_DIR}/doc/configDoxygen")
