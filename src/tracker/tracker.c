@@ -140,6 +140,9 @@ char init_tracker(char *url, struct metainfo *meta)
 {
     if (!url)
         return 0;
+    if (meta->verbose)
+        printf("%6s: tracker: requesting peers to %s\n", meta->torrent_id,
+                meta->announce);
     CURL *curl = curl_easy_init();
     if (!curl)
     {

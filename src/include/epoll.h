@@ -34,5 +34,5 @@ int switch_events(struct metainfo *meta, struct peer *peer, char *str,
 int request(struct metainfo *meta, struct peer *peer);
 char handshake(struct metainfo *meta, struct peer *peer);
 void interested(struct metainfo *meta, struct peer *peer);
-void not_interested(struct peer *peer);
-void keep_alive(struct peer *peer);
+void not_interested(struct metainfo *meta, struct peer *peer);
+void keep_alive(struct metainfo *meta, struct peer *peer);

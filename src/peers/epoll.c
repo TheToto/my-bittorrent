@@ -134,7 +134,7 @@ static void check_peers(struct metainfo *meta)
 static void handle_timeout(struct metainfo *meta, char time_state)
 {
     size_t s = 0;
-    read (meta->peers->tfd, &s, sizeof(size_t));
+    read(meta->peers->tfd, &s, sizeof(size_t));
     for (size_t i = 0; i < meta->peers->size; i++)
     {
         if (time_state)
@@ -148,7 +148,7 @@ static void handle_timeout(struct metainfo *meta, char time_state)
             }
             meta->peers->list[i]->has_contact = 0;
         }
-        keep_alive(meta->peers->list[i]);
+        keep_alive(meta, meta->peers->list[i]);
     }
 }
 

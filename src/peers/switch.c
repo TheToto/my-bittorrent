@@ -50,12 +50,15 @@ int switch_events(struct metainfo *meta, struct peer *peer, char *str,
         if (meta->verbose)
             printf("%6s: msg: recv: %s:%d: alive\n", meta->torrent_id, peer->ip,
                     peer->port);
-        return 1;//handle timeout
+        peer->has_contact = 1;
+        return 1;
     case 1:
         peer->state = !peer->state;
         if (meta->verbose)
             printf("%6s: msg: recv: %s:%d: %s\n", meta->torrent_id, peer->ip,
                   peer->port, peer->state ? "choke" : "unchoke");
+        if (peer->state)
+            peer->interested = 0;
         if (peer->state == 0)
             return request(meta, peer);
         return 1;
