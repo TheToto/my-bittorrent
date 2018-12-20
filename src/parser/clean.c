@@ -38,7 +38,8 @@ static void clear_piece(struct piece *cur_piece)
     if (!cur_piece)
         return;
     free(cur_piece->buf);
-    free(cur_piece->have);
+    if (cur_piece->have)
+        free(cur_piece->have);
     free(cur_piece);
 }
 

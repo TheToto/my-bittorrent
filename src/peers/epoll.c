@@ -21,12 +21,13 @@
 void init_epoll(struct peer_list *peers)
 {
     peers->epoll = epoll_create1(0);
-    int tfd = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
-    struct epoll_event event;
-    event.events = EPOLLIN;
-    event.data.fd = tfd;
+    int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+    struct epoll_event *event = calloc(1, sizeof(struct epoll_event));
+    event->events = EPOLLIN;
+    event->data.fd = tfd;
     peers->tfd = tfd;
-    epoll_ctl (peers->epoll, EPOLL_CTL_ADD, tfd, &event);
+    epoll_ctl(peers->epoll, EPOLL_CTL_ADD, tfd, event);
+    free(event);
 
     int flags = 0;
     struct itimerspec new_timer;
@@ -95,6 +96,7 @@ void remove_peers_to_epoll(struct peer_list *peers, struct peer *peer,
     peers->size -= 1;
     peers->list[peers->size] = 0;
     epoll_ctl(peers->epoll, EPOLL_CTL_DEL, peer->sockfd, NULL);
+    close(peer->sockfd);
     free(peer->ip);
     free(peer->have);
     free(peer);

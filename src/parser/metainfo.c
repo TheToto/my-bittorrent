@@ -149,17 +149,8 @@ void *free_metainfo(struct metainfo *meta)
 {
     if (!meta)
         return NULL;
-    for (size_t i = 0; i < meta->peers->size; i++)
-    {
-        free(meta->peers->list[i]->ip);
-        free(meta->peers->list[i]->have);
-        free(meta->peers->list[i]);
-    }
-    free(meta->peers->list);
-    free(meta->peers);
     if (meta->cur_piece->have)
         free(meta->cur_piece->have);
-    free(meta->cur_piece);
     if (meta->announce)
         free(meta->announce);
     if (meta->files)

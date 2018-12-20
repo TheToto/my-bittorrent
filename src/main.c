@@ -83,13 +83,13 @@ static void print_resume(struct metainfo *meta)
 int meta_handling(struct metainfo *meta)
 {
     create_files(meta);
+    init_epoll(meta->peers);
     if (check_integrity(meta)) //For resuming (But too slow on big files)
     {
         printf("%6s: torrent is already complete\n", meta->torrent_id);
-        exit(0);
+        return 1;
     }
     print_resume(meta);
-    init_epoll(meta->peers);
     int ret;
     if ((ret = init_tracker(meta->announce, meta)))
     {

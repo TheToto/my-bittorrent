@@ -45,10 +45,7 @@ size_t get_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
     {
         FILE *f = fopen(meta->files[i], "r");
         if (!f)
-        {
-            warn("Cannot open file %s", meta->files[i]);
             return 0;
-        }
         if (ptr)
         {
             fseek(f, ptr, SEEK_SET);
