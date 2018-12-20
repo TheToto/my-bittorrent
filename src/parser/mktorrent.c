@@ -171,7 +171,7 @@ static struct be_node *create_info(char *path)
 static struct be_node *create_root(char *path)
 {
     struct be_node *announce = create_str("http://localhost:6969/announce");
-    struct be_node *comment = create_str("Thetoto > SnathanP");
+    struct be_node *comment = create_str("Thetoto < SnathanP");
     struct be_node *created_by = create_str("Bible White Corp.");
     time_t timestamp = time(NULL);
     struct be_node *time = create_int(timestamp);
@@ -202,7 +202,7 @@ static void create_hash(struct be_node *r, char *path)
 void mktorrent(char *path)
 {
     if (access(path, F_OK) == -1)
-        errx(1, "File/Folder %s dosen't exist", path);
+        errx(1, "File/Folder %s does not exist", path);
     char *torrent_path = calloc(strlen(path) + 20, 1);
     strcat(torrent_path, path);
     strcat(torrent_path, ".torrent");

@@ -1,0 +1,50 @@
+You can find in this tarball several .torrent files to test your client with.
+These files are seeded on the epita network with real functionning clients.
+
+The following torrents should create the following results:
+
+Congratulations.txt_*.torrent:
+  - Congratulations.txt
+
+beej_*.torrent:
+  - beej/bgnet_A4.pdf
+
+images_*.torrent:
+  - images/
+    - bittorrent_surprise.jpg
+    - california.jpg
+    - deer.jpg
+    - hourglass.jpg
+    - lush.jpg
+    - stuff.jpg
+    - wall.jpg
+
+advanced_dir_*.torrent:
+  - advanced_dir/
+    - dir1/
+      - subdir1/
+        - secret.jpg
+      - surprise.txt
+    - dir2/
+      - wallpaper.jpg
+    - empty.txt
+    - empty2.txt
+    - small.txt
+
+archlinux_*.torrent:
+  - archlinux/
+    - archlinux-2018.12.01-x86_64.iso
+
+Each .torrent file exists in 5 copies:
+*_basic: all the seeding peers have 100% of the original files, and seed normally.
+*_slow_disconnect: the peers disconnect sometimes, forcing you to recontact the
+  tracker.
+*_split: the peers have either the first 50% of the content, or the other 50%.
+*_rogue: some peers send garbage data instead of real blocks.
+*_seed: these torrents accept your client as a seeding client, allowing you to
+  try your client in a "sandbox" environment. No peers are seeding on these torrents
+  by default.
+
+Please note that for all the .torrent files except the *_seed ones, your client
+will *not* be added to the seeding peers list, meaning the peers returned by the
+tracker will always be working as intended.
