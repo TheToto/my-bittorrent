@@ -165,5 +165,7 @@ char init_tracker(char *url, struct metainfo *meta)
     int res = curl_easy_perform(curl) == CURLE_OK;
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    if (meta->peers->size == 0)
+        return 0;
     return res;
 }
