@@ -1,7 +1,7 @@
 cur=$(dirname $0);
 cur="$cur"/../
-echo $cur
-echo -en "\033[5m"
+clear
+echo -en "\033[5m\033[1m"
 echo -E "___  ___       ______ _ _ _____                         _"
 echo -E "|  \/  |       | ___ (_) |_   _|                       | |"
 echo -E "| .  . |_   _  | |_/ /_| |_| | ___  _ __ _ __ ___ _ __ | |_"
@@ -10,7 +10,7 @@ echo -E "| |  | | |_| | | |_/ / | |_| | (_) | |  | | |  __/ | | | |_"
 echo -E "\_|  |_/\__, | \____/|_|\__\_/\___/|_|  |_|  \___|_| |_|\__|"
 echo -E "         __/ |"
 echo -E "        |___/"
-echo -e "\033[25m"
+echo -e "\033[25m\033[0m"
 
 tmp1=$(ls "$cur"/test/script)
 
@@ -29,7 +29,6 @@ fi
 
 echo COMPLETE
 sleep 1
-clear
 
 echo "-----------"
 echo "-  TESTS  -"
