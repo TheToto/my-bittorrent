@@ -3,7 +3,7 @@ es=$?
 res=1
 if test $es -eq 1;then
     if test "$(cat empty)" = ""; then
-        if test "$(cat str)" = "my-bittorrent: Usage: ./my-bittorrent [options] [files]"; then
+        if test "$(cat str)" = "my-bittorrent: Usage: $1 [options] [files]"; then
             res=0
         else
             echo Output: $(cat str)
