@@ -62,6 +62,8 @@ static int handle_options(int argc, char **argv, int *dump_peers, int *verbose)
             *dump_peers = 1;
         else if (c == 'v' || (c == 0 && option_index == 4))
             *verbose = 1;
+        else
+            exit(1);
     }
 }
 
