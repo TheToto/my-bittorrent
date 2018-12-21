@@ -204,7 +204,7 @@ void mktorrent(char *path)
     if (access(path, F_OK) == -1)
         errx(1, "File/Folder %s does not exist", path);
     char *torrent_path = calloc(strlen(path) + 20, 1);
-    strcat(torrent_path, path);
+    strcat(torrent_path, basename(path));
     strcat(torrent_path, ".torrent");
     if (access(torrent_path, F_OK) != -1)
     {
