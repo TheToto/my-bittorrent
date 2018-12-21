@@ -1,7 +1,5 @@
-$1 -p $2/test/torrents/Congratulations.txt_basic.torrent 1> empty 2>str
+$1 "-p" "$2/test/torrents/Congratulations.txt_basic.torrent" 1> empty 2>str
 es=$?
-cat str
-cat empty
 res=1
 if test $es -eq 0;then
     if ! test "$(cat empty)" = ""; then
