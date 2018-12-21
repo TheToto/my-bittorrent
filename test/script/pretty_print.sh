@@ -1,4 +1,4 @@
-$1 -p $1/test/torrents/Congratulations.txt_basic.torrent 1> empty 2>str
+$1 -p $2/test/torrents/Congratulations.txt_basic.torrent 1> empty 2>str
 es=$?
 cat str
 cat empty

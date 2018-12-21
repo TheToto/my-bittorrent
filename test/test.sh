@@ -40,7 +40,7 @@ success=0
 failed=0
 
 for file in $tmp1; do
-    ./"$cur"/test/script/$file "$cur"/build/my-bittorrent > tmp
+    ./"$cur"/test/script/$file "$cur"/build/my-bittorrent "$cur" > tmp
     if test $? -eq 0; then
         echo -e "\033[32mPASSED\033[33m:  test/script/$file"
         cat tmp
