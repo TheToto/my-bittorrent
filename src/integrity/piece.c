@@ -80,7 +80,6 @@ void write_piece(struct metainfo *meta, unsigned char *piece, size_t nb)
         FILE *f = fdopen(fd, "w");
         if (!f)
         {
-            warn("Cannot open file %s", meta->files[i]);
             return;
         }
         if (ptr)
@@ -132,7 +131,6 @@ void create_files(struct metainfo *meta)
         FILE *f = fopen(meta->files[i], "w");
         if (!f)
         {
-            warn("Cannot open file %s", meta->files[i]);
             return;
         }
         if (meta->files_size[i] != 0)

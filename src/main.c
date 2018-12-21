@@ -32,6 +32,8 @@ static struct option long_opt[] =
 static void opt_check_integrity(char *optarg)
 {
     struct metainfo *meta = decode_torrent(optarg, 0, 0, 0);
+    if (!meta)
+        errx(1, "Incorrect torrent file %s", optarg);
     int ret = check_integrity(meta);
     unleash_void(meta);
     exit(ret == 0);
