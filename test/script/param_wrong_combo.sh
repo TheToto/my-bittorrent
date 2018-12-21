@@ -1,4 +1,4 @@
-$1 -pm "$1../test/torrents/Congratulations.txt_basic.torrent" 1> empty 2>str
+$1 -p -m "$1../test/torrents/Congratulations.txt_basic.torrent" 1> empty 2>str
 es=$?
 res=1
 if test $es -eq 1;then
