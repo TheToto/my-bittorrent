@@ -1,5 +1,5 @@
-$1 "-m" "$2/test/torrents/" &> /dev/null
-$1 "-p" "$2/test/torrents/.torrent" 1> empty 2>str
+$1 "-m" "$2/test/torrents" &> /dev/null
+$1 "-p" "torrents.torrent" 1> empty 2>str
 es=$?
 res=1
 if test $es -eq 0;then
@@ -19,5 +19,5 @@ else
 fi
 rm empty
 rm str
-rm "$2/test/torrents/.torrent"
+rm "torrents.torrent"
 exit $res
