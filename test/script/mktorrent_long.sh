@@ -1,5 +1,6 @@
+bit=$(pwd)/"$1"
 cd "$2/test/torrents"
-./"$1" --mktorrent "README" 1> empty 2>str
+"$bit" --mktorrent "README" 1> empty 2>str
 es=$?
 res=1
 if test $es -eq 0;then

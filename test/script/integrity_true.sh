@@ -1,7 +1,10 @@
+bit=$(pwd)/"$1"
 cd "$2/test/torrents"
-./$1 "-m" "README" &> /dev/null
-./$1 "-c" "README.torrent" 1> empty 2>str
+"$bit" "-m" "README" &> /dev/null
+"$bit" "-c" "README.torrent" 1> empty 2>str
 es=$?
+cat empty
+cat str
 res=1
 if test $es -eq 0;then
     if test "$(cat str)" = ""; then
